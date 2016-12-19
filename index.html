@@ -7,11 +7,12 @@
 </head>
 
 <body>
-
+  
   <div id="plotarea">
+    <div id="hccont"></div>
     <div id="logbutton"></div>
-    <svg id="chartsvg">
-    </svg>
+    <!-- <svg id="chartsvg">
+    </svg> -->
     <div id="xvarselector"></div>
     <div id="cvarselector"></div>
     <div id="buttonsundergraph">
@@ -38,6 +39,12 @@
 <br>
  
 	<script src="js/d3.min.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+ <!--  <style type="text/css">
+${demo.css}
+    </style> -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
   <!-- <script src="js/d3tip.js"></script> -->
   <script src="js/cartogram.js"></script>
   <script src="js/topojson.v1.min.js"></script>

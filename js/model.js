@@ -493,6 +493,13 @@ BDSVis.Model = {
 		if (pref===undefined) pref = varr.printtitle.pref;
 		if (postf===undefined) postf = varr.printtitle.postf;
 		return pref+this.NameLookUp(value,varname)+postf;
+	},
+
+	sortasmodel : function(arr,v) {  //Sorted like in model.js
+		var marr=this[v].map(function(d) {return d.code});
+		return arr.sort(function(a,b) {
+				return marr.indexOf(a)-marr.indexOf(b);
+			})
 	}
 
 };
