@@ -103,6 +103,7 @@ BDSVis.Model = {
 		{
 					"code" : "fage4",
 					"name" : "Firm Age",
+					"units" : "years",
 					"type" : "categorical",
 					"default" : 6,
 					"total" : 12,
@@ -124,6 +125,7 @@ BDSVis.Model = {
 				 {
 					"code" : "fsize",
 					"name" : "Firm Size",
+					"units" : "employees",
 					"type" : "categorical",
 					"default" : 12,
 					"total" : 12,
@@ -136,6 +138,7 @@ BDSVis.Model = {
 				 {
 					"code" : "ifsize",
 					"name" : "Initial Firm Size",
+					"units" : "employees",
 					"type" : "categorical",
 					"default" : 12,
 					"total" : 12,

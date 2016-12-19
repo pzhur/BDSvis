@@ -4,23 +4,22 @@ var BDSVis = BDSVis || {};
 BDSVis.makePlot = function (data,request,vm,limits) {
 	//"vm" is the reference to ViewModel
 
-	var pv=vm.PlotView;
+	// var pv=vm.PlotView;
 	
-	var svg=pv.svg;
-	var width=pv.width;
-	var height=pv.height;
+	// var svg=pv.svg;
+	// var width=pv.width;
+	// var height=pv.height;
 
 	var cvar = request.cvar;
-	var cvarr=vm.model.LookUpVar(cvar);
+	var cvarr= vm.model.LookUpVar(cvar);
 	var xvar = request.xvar;
-	var xvarr=vm.model.LookUpVar(xvar);
+	var xvarr= vm.model.LookUpVar(xvar);
+
 
 	var YvarsAsLegend = (cvar === vm.model.yvars);
 
 	//If yvars is also a c-variable, then we got melted data from updateBDSdata function, with all yvars contained in the "value" column
-	var yvar=YvarsAsLegend?"value":request[vm.model.yvars];
-
-	
+	var yvar = YvarsAsLegend?"value":request[vm.model.yvars][0];
 
 	var cvarvalues = Array.from(new Set(data.map(function(d) {return d[cvar]}))) //All the unique values of returned cvars
 	cvarvalues = vm.model.sortasmodel(cvarvalues, cvar); //Sort them as in model.js
@@ -29,7 +28,7 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	xvarvalues = vm.model.IsContinuous(xvarr)?xvarvalues.sort():vm.model.sortasmodel(xvarvalues, xvar); //Sort them by quantity (if continuous) or like in model.js
 
 	//Set the title of the plot
-	var ptitle=(YvarsAsLegend && request[vm.model.yvars].length>1)?("Various "+vm.model.yvars+"s"):(vm.model.NameLookUp(request[vm.model.yvars],vm.model.yvars)); //If many yvars say "various", otherwise the yvar name
+	var ptitle=(YvarsAsLegend && request[vm.model.yvars].length>1)?("Various "+vm.model.NameLookUp(vm.model.yvars,"var")+"s"):(vm.model.NameLookUp(request[vm.model.yvars],vm.model.yvars)); //If many yvars say "various", otherwise the yvar name
 	
 	//Continue forming title
 	for (var key in data[0]) {
@@ -43,11 +42,16 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 
 	//Y-axis label
 
-    var yvarname=vm.model.NameLookUp((YvarsAsLegend)?request[vm.model.yvars][0]:vm.model.yvars);
-    console.log(YvarsAsLegend,(YvarsAsLegend)?request[vm.model.yvars][0]:vm.model.yvars)
-	//if (((!YvarsAsLegend) || ( request[vm.model.yvars].length==1 )) && (yvarname.indexOf("rate")!==-1))	yvarname = yvarname+", % change";	
-	
+    var yaxislabel=vm.model.NameLookUp(request[vm.model.yvars][0],vm.model.yvars);
+    if ((YvarsAsLegend) && request[vm.model.yvars].length>1) yaxislabel = vm.model.NameLookUp(vm.model.yvars,"var")+"s";
+    if (yaxislabel.indexOf("rate")!==-1) yaxislabel = yaxislabel+", % change";
 
+    //X-axis label
+    var xvarunits = xvarr.units || "";
+    var xaxislabel = xvarr.name;
+    if (xvarunits.length>0) xaxislabel = xaxislabel + ", "+xvarunits;
+
+    //Make the HighCharts graph
 	var hcc = Highcharts.chart('hccont', {
 
 	    chart: {
@@ -60,7 +64,7 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	    },
 
 	    xAxis: {
-	    	title: {text: xvarr.name},
+	    	title: {text: xaxislabel},
 	       	categories: vm.model.IsContinuous(xvarr)?"":xvarvalues.map(function(d) {return vm.model.NameLookUp(d,xvar)})
 	       //categories: xvarvalues.map(function(d) {return vm.model.NameLookUp(d,xvar)})	
 	    },
@@ -70,7 +74,7 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	        // min: 0,
 	        type: vm.logscale?'logarithmic':'linear',
 	        title: {
-	            text: yvarname
+	            text: yaxislabel
 	        }
 	    },
 
