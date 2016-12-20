@@ -4,7 +4,7 @@ var BDSVis = BDSVis || {};
 BDSVis.makePlot = function (data,request,vm,limits) {
 	//"vm" is the reference to ViewModel
 
-	// var pv=vm.PlotView;
+	var pv=vm.PlotView;
 	
 	// var svg=pv.svg;
 	// var width=pv.width;
@@ -41,7 +41,6 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	};
 
 	//Y-axis label
-
     var yaxislabel=vm.model.NameLookUp(request[vm.model.yvars][0],vm.model.yvars);
     if ((YvarsAsLegend) && request[vm.model.yvars].length>1) yaxislabel = vm.model.NameLookUp(vm.model.yvars,"var")+"s";
     if (yaxislabel.indexOf("rate")!==-1) yaxislabel = yaxislabel+", % change";
@@ -56,8 +55,51 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 
 	    chart: {
 	        type: vm.model.IsContinuous(xvarr)?'line':'column',
-	        zoomType: 'xy'
+
+	        zoomType: 'xy',
+	        width: pv.width+pv.legendwidth,
+	        height: pv.height0,
+	        events: {
+                load: function () {
+                	
+                	var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
+					var step=vm.model.LookUpVar(vm.model.timevar).range[2];
+					var iy=Math.max(timerange[0], vm.timelapsefrom);
+                    // set up the updating of the chart each second
+                    var tchart = this;
+                    if (vm.timelapse) {
+                        vm.tlint=setInterval(function () {
+                        	console.log(tchart.series)
+                  			tchart.series[0].setData(cvarvalues.map(function(cv) { //Make a series for each value of cvar
+										return {
+												name:vm.model.NameLookUp(cv,cvar), 
+												stack:cv, 
+												data:	
+													xvarvalues.map(function(xv) { //Get a data point for each of the returned xvar values, even if there isn't one for cv
+														var dxc =  data.filter(function(d) {return (d[cvar]===cv) && (d[xvar]===xv) && (+d[vm.model.timevar]===iy);}) //Select only data with cvar==cv,xvar==xv
+														return [xv,(dxc.length>0)?(+dxc[0][yvar]):0] //return [x,y] or [x,0] if there was not data for xv
+													})
+											
+												}
+									}));
+                  			//series.addPoint([x, y], true, true);
+                  			if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
+                  			vm.TimeLapseCurrYear=iy;//vm.model[vm.model.timevar][iy];
+                			//clearInterval(vm.tlint);
+                			//vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
+                        }, 1000);
+                    }
+                }
+            }
 	    },
+
+	    legend: {
+	    		title: {text: cvarr.name+':'},
+	        	layout: 'vertical',
+	        	verticalAlign: 'middle',
+	        	align: 'right'
+	    },
+
 
 	    title: {
 	        text: ptitle
@@ -91,7 +133,7 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	        }
 	    },
 
-	    series: cvarvalues.map(function(cv) {
+	    series: cvarvalues.map(function(cv) { //Make a series for each value of cvar
 			return {
 					name:vm.model.NameLookUp(cv,cvar), 
 					stack:cv, 
@@ -99,13 +141,13 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 						vm.model.IsContinuous(xvarr)
 							?
 							//continuous
-							data.filter(function(d) {return d[cvar]===cv;})
-								.map(function(d) {return [+d[xvar],+d[yvar]]})
+							data.filter(function(d) {return d[cvar]===cv;}) //Select only data with cvar==cv
+								.map(function(d) {return [+d[xvar],+d[yvar]]}) //return x and y
 							:
 							//categorical		
-							xvarvalues.map(function(xv) {
-								var dxc =  data.filter(function(d) {return (d[cvar]===cv) && (d[xvar]===xv);})
-								return [xv,(dxc.length>0)?(+dxc[0][yvar]):0]
+							xvarvalues.map(function(xv) { //Get a data point for each of the returned xvar values, even if there isn't one for cv
+								var dxc =  data.filter(function(d) {return (d[cvar]===cv) && (d[xvar]===xv);}) //Select only data with cvar==cv,xvar==xv
+								return [xv,(dxc.length>0)?(+dxc[0][yvar]):0] //return [x,y] or [x,0] if there was not data for xv
 						})
 				
 					}
@@ -148,29 +190,29 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	};
 
 	//Run timelapse animation
-	if (vm.timelapse) {
+	// if (vm.timelapse) {
 		
-		//This array is only needed for smooth transition in animations. There have to be bars of 0 height for missing data.
-		//Create array with entry for all values of xvar and all values of cvar.
-		var data4bars = xScale.domain().map(function(xv) {return cvarlist.map(function(cv) {return (obj={}, obj[xvar]=xv, obj[cvar]=cv,obj);});});
+	// 	//This array is only needed for smooth transition in animations. There have to be bars of 0 height for missing data.
+	// 	//Create array with entry for all values of xvar and all values of cvar.
+	// 	var data4bars = xScale.domain().map(function(xv) {return cvarlist.map(function(cv) {return (obj={}, obj[xvar]=xv, obj[cvar]=cv,obj);});});
 
-		//Create bars for every xvar/cvar combination
-		chart.selectAll("rect.plotbar").remove();
-		chart.selectAll("rect.plotbar").data(d3.merge(data4bars)).enter().append("rect").attr("class", "plotbar").attr("width", barwidth);
+	// 	//Create bars for every xvar/cvar combination
+	// 	chart.selectAll("rect.plotbar").remove();
+	// 	chart.selectAll("rect.plotbar").data(d3.merge(data4bars)).enter().append("rect").attr("class", "plotbar").attr("width", barwidth);
 		
-		var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
-		var step=vm.model.LookUpVar(vm.model.timevar).range[2];
-		var iy=Math.max(timerange[0], vm.timelapsefrom);
-		var curyearmessage=svg.append("text").attr("x",width/2).attr("y",height/2).attr("font-size",100).attr("fill-opacity",.3);
-		var intervalfunction = function() {
-  			updateyear(iy);
-  			if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
-  			vm.TimeLapseCurrYear=iy;//vm.model[vm.model.timevar][iy];
-			clearInterval(vm.tlint);
-			vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
-		}
-		vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
-	};
+	// 	var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
+	// 	var step=vm.model.LookUpVar(vm.model.timevar).range[2];
+	// 	var iy=Math.max(timerange[0], vm.timelapsefrom);
+	// 	var curyearmessage=svg.append("text").attr("x",width/2).attr("y",height/2).attr("font-size",100).attr("fill-opacity",.3);
+	//	var intervalfunction = function() {
+  	// 		updateyear(iy);
+  	// 		if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
+  	// 		vm.TimeLapseCurrYear=iy;//vm.model[vm.model.timevar][iy];
+			// clearInterval(vm.tlint);
+			// vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
+	//	}
+	// 	vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
+	// };
 
 	//BDSVis.util.preparesavesvg();
 };
