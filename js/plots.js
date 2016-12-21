@@ -62,34 +62,44 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	        events: {
                 load: function () {
                 	
-                	var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
-					var step=vm.model.LookUpVar(vm.model.timevar).range[2];
-					var iy=Math.max(timerange[0], vm.timelapsefrom);
-                    // set up the updating of the chart each second
-                    var tchart = this;
-                    if (vm.timelapse) {
-                        vm.tlint=setInterval(function () {
-                        	console.log(tchart.series)
-                  			tchart.series[0].setData(cvarvalues.map(function(cv) { //Make a series for each value of cvar
-										return {
-												name:vm.model.NameLookUp(cv,cvar), 
-												stack:cv, 
-												data:	
-													xvarvalues.map(function(xv) { //Get a data point for each of the returned xvar values, even if there isn't one for cv
-														var dxc =  data.filter(function(d) {return (d[cvar]===cv) && (d[xvar]===xv) && (+d[vm.model.timevar]===iy);}) //Select only data with cvar==cv,xvar==xv
-														return [xv,(dxc.length>0)?(+dxc[0][yvar]):0] //return [x,y] or [x,0] if there was not data for xv
-													})
-											
-												}
-									}));
-                  			//series.addPoint([x, y], true, true);
-                  			if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
-                  			vm.TimeLapseCurrYear=iy;//vm.model[vm.model.timevar][iy];
-                			//clearInterval(vm.tlint);
-                			//vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
-                        }, 1000);
-                    }
-                }
+	                	var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
+						var step=vm.model.LookUpVar(vm.model.timevar).range[2];
+						var iy=Math.max(timerange[0], vm.timelapsefrom);
+	                    // set up the updating of the chart each second
+	                    var series = this.series[0];
+	                    if (vm.timelapse) {
+	                        vm.tlint=setInterval(function () {var cv='g'
+			          			series.setData(//cvarvalues.map(function(cv) { //Make a series for each value of cvar
+											//return //{
+													// name:vm.model.NameLookUp(cv,cvar), 
+													// stack:cv, 
+													// data:	
+														xvarvalues.map(function(xv) { //Get a data point for each of the returned xvar values, even if there isn't one for cv
+															var dxc =  data.filter(function(d) {return (d[cvar]===cv) && (d[xvar]===xv) && (+d[vm.model.timevar]===iy);}) //Select only data with cvar==cv,xvar==xv
+															return [xv,(dxc.length>0)?(+dxc[0][yvar]):0] //return [x,y] or [x,0] if there was not data for xv
+														})
+												
+													//}
+										//})
+										);
+	                  			//series.addPoint(['a', iy], true, true);
+	                  			if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
+	                  			vm.TimeLapseCurrYear=iy;//vm.model[vm.model.timevar][iy];
+	                			//clearInterval(vm.tlint);
+	                			//vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
+	                        }, vm.timelapsespeed);
+	                    }
+	                },
+	                // load: function () {
+
+                 //        // set up the updating of the chart each second
+                 //        var series = this.series[0];
+                 //        setInterval(function () {
+                 //            var x = 'a', // current time
+                 //                y = Math.random();
+                 //            series.setData([['a', y],['b',2*y]], true, true);
+                 //        }, 1000);
+                 //   }
             }
 	    },
 
