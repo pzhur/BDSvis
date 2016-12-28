@@ -15,7 +15,6 @@ BDSVis.ViewModel = function(model) {
 	//Reference to the UI elements selecting variables;
 	this.UIView = BDSVis.UIView;
 
-
 	this.ActualVarCode = function(varcode) {
 		//Checks if the varname is group variable, then returns code of the variable selected. 
 		//If not group variable just returns the input (supposedly the variable code)
@@ -36,7 +35,7 @@ BDSVis.ViewModel = function(model) {
 	this.toggleshowdata = function () {
 		//This function executes in click to 'Show Data' button.
 		vm.ShowData = !vm.ShowData;
-		d3.select("#showdata").style("display",vm.ShowData?"block":"none");
+		vm.UIView.ToggleData(vm.ShowData);
 		vm.TableView.SetLowerHeadersWidth();
 	};
 
@@ -90,18 +89,18 @@ BDSVis.ViewModel = function(model) {
 	this.setcvar = function (varname) {
 		vm.cvar=varname;
 		
-		SetToTotals(varname)
+		SetToTotals(varname);
 
 		vm.getBDSdata();
 	};
 
 	this.setxvar = function (varname) {
-		if (vm.geomap()) d3.select("#viewDiv").style("display","none")	
+
 		vm.xvar=varname;
-		if (vm.geomap()) {
-			d3.select("#viewDiv").style("display","block")
-			vm.cvar=vm.model.yvars;
-		}
+
+		if (vm.geomap()) vm.cvar=vm.model.yvars;
+
+		vm.UIView.ToggleMapGraph(vm.geomap());
 
 		var varname1=vm.ActualVarCode(varname);
 		vm.IncludedXvarValues[varname1]=vm.model.GetCodes(varname1);

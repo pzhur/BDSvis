@@ -5,6 +5,8 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	//"vm" is the reference to ViewModel
 
 	var pv=vm.PlotView;
+
+	//pv.Refresh(data,request,vm);
 	
 	// var svg=pv.svg;
 	// var width=pv.width;

@@ -109,4 +109,13 @@ BDSVis.UIView = {
 			selectors.append("br");
 		});
 	},
+
+	ToggleData : function(ShowData) {
+		d3.select("#showdata").style("display",ShowData?"block":"none");
+	},
+
+	ToggleMapGraph : function(geomap) {
+		d3.select("#hccont").style("display",geomap?"none":"block");
+		d3.select("#viewDiv").style("display",geomap?"block":"none");
+	},
 }
