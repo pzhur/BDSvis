@@ -73,7 +73,7 @@ BDSVis.getAPIdata = function (vm) {
 			});
     		BDSVis.processAPIdata(data,request,vm); //Continue to data processing and plotting
     	}
-    	vm.DrawUI();
+    	vm.UIView.DrawUI(vm);
     });
 };
 
