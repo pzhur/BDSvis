@@ -2,6 +2,7 @@ var BDSVis = BDSVis || {};
 
 BDSVis.Model = {
 	timevar : "year2", //Variable used in time lapse
+	geomapvar : ["state"], //Variable used in geo map regime
 	geomapvar : ["state","metropolitan statistical area"], //Variable used in geo map regime
 	yvars : "measure", //Variable plotted in y-axis
 	timelapsespeeds : [
@@ -294,8 +295,12 @@ BDSVis.Model = {
 		{"name" : "Pacific", "states" : ["02","06","15","41","53"]}
     ],
 
-	InitModel : function() {
+	InitModel : function(Map, MapView) {
 		var tmod=this;
+		tmod.Map = Map;
+		tmod.MapView = MapView;
+
+		
 
 /////////////////// THIS ARE THE SHELL COMMANDS THAT DOWNLOAD SHAPE FILES FROM CENSUS WEBSITE AND GENERATE THE TOPOJSON FILE
 ////////////////// YOU'LL NEED topojson AND ogr2ogr WHICH CAN BE INSTALLED AS PART OF Node.js 

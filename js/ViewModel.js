@@ -187,7 +187,7 @@ BDSVis.ViewModel = function(model) {
 	//Set the incompatible variables to values corresponding totals
 	function SetToTotals(varname) {
 		if (vm.model.LookUpVar(vm.ActualVarCode(varname)).incompatible !== undefined)
-			vm.model.LookUpVar(vm.ActualVarCode(varname)).incompatible.forEach(function(incvar){
+			vm.model.LookUpVar(vm.ActualVarCode(varname)).incompatible.forEach(function(incvar){	
 				vm.SelectedOpts[incvar]=[vm.model[incvar][vm.model.LookUpVar(incvar).total].code];
 			});
 	};
@@ -201,9 +201,13 @@ BDSVis.ViewModel = function(model) {
 		vm.getBDSdata();
 	};
 
-	this.setxvar = function (varname) {	
+	this.setxvar = function (varname) {
+		if (vm.geomap()) d3.select("#viewDiv").style("display","none")	
 		vm.xvar=varname;
-		if (vm.geomap()) vm.cvar=vm.model.yvars;
+		if (vm.geomap()) {
+			d3.select("#viewDiv").style("display","block")
+			vm.cvar=vm.model.yvars;
+		}
 
 		var varname1=vm.ActualVarCode(varname);
 		vm.IncludedXvarValues[varname1]=vm.model.GetCodes(varname1);
@@ -235,7 +239,7 @@ BDSVis.ViewModel = function(model) {
 	});
 
 	//Initial values of X-axis variable and C- variable
-	this.xvar = "fchar";
+	this.xvar = "sic1";
 	this.cvar = "fage4";
 
 	this.PlotView.Init();

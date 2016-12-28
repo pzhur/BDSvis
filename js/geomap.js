@@ -6,10 +6,28 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	//Initialize the SVG elements and get width and length for scales
 	var pv=vm.PlotView;
-	pv.Refresh(data,request,vm);
+	//pv.Refresh(data,request,vm);
 	svg=pv.svg;
 	width=pv.width;
 	height=pv.height;
+
+	require([
+      "esri/Map",
+      "esri/views/MapView",
+      "dojo/domReady!"
+    ], function(Map, MapView){
+      var map = new Map({
+        basemap: "streets"
+      });
+      var view = new MapView({
+        container: "viewDiv",  // Reference to the scene div created in step 5
+        map: map,  // Reference to the map object created before the scene
+        zoom: 4,  // Sets the zoom level based on level of detail (LOD)
+        center: [15, 65]  // Sets the center point of view in lon/lat
+      });
+    });
+
+	
 	
 	var yvar=request[vm.model.yvars];
 	var xvar=request.xvar;
@@ -26,15 +44,15 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 
 	//Filter by region
-	data = data.filter(function(d1){
-		return vm.model[xvar][vm.model[xvar].map(function(d) {return d.code}).indexOf(d1[xvar])].regions.indexOf(vm.region)>-1;
-	})
-	vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm); 
+	// data = data.filter(function(d1){
+	// 	return vm.model[xvar][vm.model[xvar].map(function(d) {return d.code}).indexOf(d1[xvar])].regions.indexOf(vm.region)>-1;
+	// })
+	// vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm); 
 	
 	
-	//Plot the map	
-    var mapg = svg.append('g').attr("clip-path", "url(#clip)")
-    		.attr('class', 'map');
+	// //Plot the map	
+ //    var mapg = svg.append('g').attr("clip-path", "url(#clip)")
+ //    		.attr('class', 'map');
 
     //Set D3 scales
 
@@ -61,9 +79,9 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		//yScale.domain([ymin,ymid,ymax]).range(["red","#ccffcc","blue"]);
 
 
-	var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
-		emptystates=0,
-		timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
+	// var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
+	// 	emptystates=0,
+	// 	timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
 
 			
 	if (vm.timelapse) { //In time lapse regime, select only the data corresponding to the current year
@@ -74,19 +92,19 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	//Put the states/MSAs in geo_data in the same order as they are in data
 
-	var xir = data.map(LUName);
-	//var xir = data.map(function(d) {return d[xvar]});
-	for (var i in vm.model.geo_data[xvar]) {
-		var iir = xir.indexOf(vm.model.geo_data[xvar][i].properties.name);
-		if (iir === -1) { //If the state/MSA is not in data (e.g. Puerto Rico is never there), put it to the end of the array
-			geo_data1[data.length+emptystates]=vm.model.geo_data[xvar][i];
-			emptystates++;
-		} else {
-			geo_data1[iir]=vm.model.geo_data[xvar][i];
-			// geo_data1[iir][xvar]=data[iir][xvar];
-			// geo_data1[iir][yvar]=data[iir][yvar];
-		}
-	};
+	// var xir = data.map(LUName);
+	// //var xir = data.map(function(d) {return d[xvar]});
+	// for (var i in vm.model.geo_data[xvar]) {
+	// 	var iir = xir.indexOf(vm.model.geo_data[xvar][i].properties.name);
+	// 	if (iir === -1) { //If the state/MSA is not in data (e.g. Puerto Rico is never there), put it to the end of the array
+	// 		geo_data1[data.length+emptystates]=vm.model.geo_data[xvar][i];
+	// 		emptystates++;
+	// 	} else {
+	// 		geo_data1[iir]=vm.model.geo_data[xvar][i];
+	// 		// geo_data1[iir][xvar]=data[iir][xvar];
+	// 		// geo_data1[iir][yvar]=data[iir][yvar];
+	// 	}
+	// };
 
 	// Create a unit projection.
 	var projection = d3.geo.albersUsa().scale(1).translate([0, 0]);
@@ -95,37 +113,37 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	var path = d3.geo.path().projection(projection);
 
 	// Compute the bounds of a feature of interest, then derive scale & translate such that it fits within the bounds
-	var b = geo_data1.slice(0,data.length).map(path.bounds),
-		leftbound = d3.min(b.map(function(d) {return d[0][0]}).filter(function(d) {return Math.abs(d)!==Infinity}));
-		rightbound = d3.max(b.map(function(d) {return d[1][0]}).filter(function(d) {return Math.abs(d)!==Infinity}));
-		topbound = d3.min(b.map(function(d) {return d[0][1]}).filter(function(d) {return Math.abs(d)!==Infinity}));
-		bottombound = d3.max(b.map(function(d) {return d[1][1]}).filter(function(d) {return Math.abs(d)!==Infinity}));
+	// var b = geo_data1.slice(0,data.length).map(path.bounds),
+	// 	leftbound = d3.min(b.map(function(d) {return d[0][0]}).filter(function(d) {return Math.abs(d)!==Infinity}));
+	// 	rightbound = d3.max(b.map(function(d) {return d[1][0]}).filter(function(d) {return Math.abs(d)!==Infinity}));
+	// 	topbound = d3.min(b.map(function(d) {return d[0][1]}).filter(function(d) {return Math.abs(d)!==Infinity}));
+	// 	bottombound = d3.max(b.map(function(d) {return d[1][1]}).filter(function(d) {return Math.abs(d)!==Infinity}));
 
-	s = .95 / Math.max((rightbound - leftbound) / width, (bottombound - topbound) / height),
-	t = [(width - s * (rightbound + leftbound)) / 2, (height - s * (topbound + bottombound)) / 2];
+	// s = .95 / Math.max((rightbound - leftbound) / width, (bottombound - topbound) / height),
+	// t = [(width - s * (rightbound + leftbound)) / 2, (height - s * (topbound + bottombound)) / 2];
 
-	// Update the projection to use computed scale & translate.
-	projection.scale(s).translate(t);
+	// // Update the projection to use computed scale & translate.
+	// projection.scale(s).translate(t);
 
 	//Cartogram.js contiguous cartogram
-	var carto = d3.cartogram()
-            .projection(projection)
-            .properties(function(d) {return d.properties;})
-            //.value(function(d,i) {return +d.properties[landarea];});
-            //.value(function(d,i) {return +data[i][yvar];});
-            .value(function(d,i) {return 10000;});
+	// var carto = d3.cartogram()
+ //            .projection(projection)
+ //            .properties(function(d) {return d.properties;})
+ //            //.value(function(d,i) {return +d.properties[landarea];});
+ //            //.value(function(d,i) {return +data[i][yvar];});
+ //            .value(function(d,i) {return 10000;});
     
-    geo_data1=carto.features(vm.model.full_geo_data, vm.model.full_geo_data.objects.states.geometries);
+ //    geo_data1=carto.features(vm.model.full_geo_data, vm.model.full_geo_data.objects.states.geometries);
 
 	//Calculate relative land areas and how to scale selected states
 
-	//Find maximal scaling: maximum of the "value of variable (yvar) per land area unit"
-	var scalingmax = d3.max(geo_data1.map(function(d,i){
-		if ((data[i]===undefined) || (["Alaska","Hawaii","District of Columbia"].indexOf(d.properties.name)!==-1)) return 0;
-		else return data[i][yvar]/d.properties.landarea;
-	}));
+	// //Find maximal scaling: maximum of the "value of variable (yvar) per land area unit"
+	// var scalingmax = d3.max(geo_data1.map(function(d,i){
+	// 	if ((data[i]===undefined) || (["Alaska","Hawaii","District of Columbia"].indexOf(d.properties.name)!==-1)) return 0;
+	// 	else return data[i][yvar]/d.properties.landarea;
+	// }));
 
-	var features = carto(vm.model.full_geo_data, vm.model.full_geo_data.objects.states.geometries).features
+	// var features = carto(vm.model.full_geo_data, vm.model.full_geo_data.objects.states.geometries).features
 
 
 	//Plot state outlines for all states
@@ -140,40 +158,40 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	// 		.attr("transform",(vm.cartogram!==1)?("translate(" + pv.translate + ")"+"scale(" + pv.scale + ")"):"");
 	// 		//.attr("transform","translate(" + pv.translate + ")"+"scale(" + pv.scale + ")");
 
-	var map = mapg.selectAll('path.datacontour')
-			.data(features)
-			.enter()
-			.append('path') //State/MSA outlines for states/MSA present in the data
-			.attr("class","datacontour")
-			.attr('d',carto.path)
-			// .style('fill', "white")
-			// .attr('fill-opacity', 0)
-			// .style('stroke', 'black')
-			// .style('stroke-width', 0.3)
-			.on("dblclick",function(d) { //Add the state/MSA to the data set upon double-click to its outline
-				var xvcode = vm.model[xvar].filter(function(d1) {return d1.name===d.properties.name;})[0].code;
-				vm.IncludedXvarValues[xvar].push(xvcode);
-				//request[xvar].push(xvcode);
-				BDSVis.processAPIdata(vm.dataunfiltered,request,vm);
-				//d3.event.stopPropagation()
-				//vm.getBDSdata();
-			})
-			.data(data)
-			.attr("transform", function(d,i) {
-				return StatesRescaling(d,i);
-			})
-			.style('fill', function(d) {return yScale(d[yvar]);})
-			.attr("fill-opacity",.9)
-			.style('stroke-width', 0.3)
-			.style('stroke', 'white')
-			.on("dblclick",function(d) { //Remove the state/MSA from the data set upon double-click
-				var ind = vm.IncludedXvarValues[xvar].indexOf(vm.model[xvar].filter(function(d1) {return d1.name===LUName(d);})[0].code);
-				vm.IncludedXvarValues[xvar].splice(ind,1);
-				BDSVis.processAPIdata(vm.dataunfiltered,request,vm);
-				//d3.event.stopPropagation()	
-				//vm.getBDSdata();
-			})
-			.append("title").text(function(d){return LUName(d)+": "+d3.format(",")(d[yvar]);});
+	// var map = mapg.selectAll('path.datacontour')
+	// 		.data(features)
+	// 		.enter()
+	// 		.append('path') //State/MSA outlines for states/MSA present in the data
+	// 		.attr("class","datacontour")
+	// 		.attr('d',carto.path)
+	// 		// .style('fill', "white")
+	// 		// .attr('fill-opacity', 0)
+	// 		// .style('stroke', 'black')
+	// 		// .style('stroke-width', 0.3)
+	// 		.on("dblclick",function(d) { //Add the state/MSA to the data set upon double-click to its outline
+	// 			var xvcode = vm.model[xvar].filter(function(d1) {return d1.name===d.properties.name;})[0].code;
+	// 			vm.IncludedXvarValues[xvar].push(xvcode);
+	// 			//request[xvar].push(xvcode);
+	// 			BDSVis.processAPIdata(vm.dataunfiltered,request,vm);
+	// 			//d3.event.stopPropagation()
+	// 			//vm.getBDSdata();
+	// 		})
+	// 		.data(data)
+	// 		.attr("transform", function(d,i) {
+	// 			return StatesRescaling(d,i);
+	// 		})
+	// 		.style('fill', function(d) {return yScale(d[yvar]);})
+	// 		.attr("fill-opacity",.9)
+	// 		.style('stroke-width', 0.3)
+	// 		.style('stroke', 'white')
+	// 		.on("dblclick",function(d) { //Remove the state/MSA from the data set upon double-click
+	// 			var ind = vm.IncludedXvarValues[xvar].indexOf(vm.model[xvar].filter(function(d1) {return d1.name===LUName(d);})[0].code);
+	// 			vm.IncludedXvarValues[xvar].splice(ind,1);
+	// 			BDSVis.processAPIdata(vm.dataunfiltered,request,vm);
+	// 			//d3.event.stopPropagation()	
+	// 			//vm.getBDSdata();
+	// 		})
+	// 		.append("title").text(function(d){return LUName(d)+": "+d3.format(",")(d[yvar]);});
 
 	
 	function StatesRescaling(d,i) {
@@ -249,99 +267,99 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	};
 	
 
-	pv.zoom = d3.behavior.zoom().on("zoom",refresh);
-	svg.call(pv.zoom);
-	var zoombuttons=pv.svgcont.append("g").attr("transform","translate(20,"+height/2.+")");
-	zoombuttons.data([1.15]).append("text").attr("class","unselectable").text("+").style("font-size","48").on("click",zoomtranslaterefresh);
-	zoombuttons.data([.87]).append("text").attr("class","unselectable").attr("y",".75em").text("−").style("font-size","48").on("click",zoomtranslaterefresh);
+	// pv.zoom = d3.behavior.zoom().on("zoom",refresh);
+	// svg.call(pv.zoom);
+	// var zoombuttons=pv.svgcont.append("g").attr("transform","translate(20,"+height/2.+")");
+	// zoombuttons.data([1.15]).append("text").attr("class","unselectable").text("+").style("font-size","48").on("click",zoomtranslaterefresh);
+	// zoombuttons.data([.87]).append("text").attr("class","unselectable").attr("y",".75em").text("−").style("font-size","48").on("click",zoomtranslaterefresh);
 
 
-	//Making Legend
-	var legendsvg=vm.PlotView.legendsvg;
+	// //Making Legend
+	// var legendsvg=vm.PlotView.legendsvg;
 
-	var legendsvgzoom = d3.behavior.zoom().on("zoom",colorscalerefresh);
-	legendsvg.call(legendsvgzoom);
+	// var legendsvgzoom = d3.behavior.zoom().on("zoom",colorscalerefresh);
+	// legendsvg.call(legendsvgzoom);
 
-	var colorbar={height:200, width:20, nlevels:50, nlabels:5, fontsize:15, levels:[]};
+	// var colorbar={height:200, width:20, nlevels:50, nlabels:5, fontsize:15, levels:[]};
 
-	var hScale = scaletype.copy().domain([ymin,ymax]).range([0,colorbar.height]); //Scale for height of the rectangles in the colorbar
-	var y2levelsScale = scaletype.copy().domain([ymin,ymax]).range([0,colorbar.nlevels]); //Scale for levels of the colorbar
+	// var hScale = scaletype.copy().domain([ymin,ymax]).range([0,colorbar.height]); //Scale for height of the rectangles in the colorbar
+	// var y2levelsScale = scaletype.copy().domain([ymin,ymax]).range([0,colorbar.nlevels]); //Scale for levels of the colorbar
 
-	for (var i=0; i<colorbar.nlevels+1; i++) colorbar.levels.push(y2levelsScale.invert(i));
+	// for (var i=0; i<colorbar.nlevels+1; i++) colorbar.levels.push(y2levelsScale.invert(i));
 
-	var legendtitle = legendsvg.append("text").attr("class","legtitle").text(vm.model.NameLookUp(yvar,vm.model.yvars)).attr("x",-20).attr("y",-20).attr("dy","1em");
-	legendtitle.call(pv.wrap,pv.legendwidth);
-	//legendtitle.selectAll("tspan").attr("x",function(d) { return (pv.legendwidth-this.getComputedTextLength())/2.; })
-	var titleheight = legendtitle.node().getBBox().height;
-	legendsvg.data([.87]).append("text").attr("class","unselectable").attr("x",-20).attr("y",titleheight+colorbar.fontsize).text("−").style("font-size","24").on("click",colorscalerefresh);
-	legendsvg.data([1.15]).append("text").attr("class","unselectable").attr("x",-20).attr("y",titleheight+0.4*colorbar.fontsize+colorbar.height).text("+").style("font-size","24").on("click",colorscalerefresh);
+	// var legendtitle = legendsvg.append("text").attr("class","legtitle").text(vm.model.NameLookUp(yvar,vm.model.yvars)).attr("x",-20).attr("y",-20).attr("dy","1em");
+	// legendtitle.call(pv.wrap,pv.legendwidth);
+	// //legendtitle.selectAll("tspan").attr("x",function(d) { return (pv.legendwidth-this.getComputedTextLength())/2.; })
+	// var titleheight = legendtitle.node().getBBox().height;
+	// legendsvg.data([.87]).append("text").attr("class","unselectable").attr("x",-20).attr("y",titleheight+colorbar.fontsize).text("−").style("font-size","24").on("click",colorscalerefresh);
+	// legendsvg.data([1.15]).append("text").attr("class","unselectable").attr("x",-20).attr("y",titleheight+0.4*colorbar.fontsize+colorbar.height).text("+").style("font-size","24").on("click",colorscalerefresh);
 	
-	var draglistener = d3.behavior.drag()
-		 .on("dragstart", function(d) {
-            d3.event.sourceEvent.stopPropagation();
-            // it's important that we suppress the mouseover event on the node being dragged. Otherwise it will absorb the mouseover event and the underlying node will not detect it 
-            //d3.select(this).attr('pointer-events', 'none');
-        })
-        .on("drag", function(d) {
-        	var mousey = d3.mouse(legendsvg.node())[1];
-        	var sliderposition = mousey+.5*colorbar.height;
-        	//pv.colorscale = hScale.invert(mousey)/ymid(ymin,ymax);
-        	pv.colorscale = Math.log((ymax-hScale.invert(mousey))/(ymax-ymin))/Math.log((ymax-ymid(ymin,ymax))/(ymax-ymin));
-        	if ((mousey>0) && (mousey<colorbar.height))
-        		{
-        			slider.attr("transform","translate(-10,"+sliderposition+")");
-        			legendsvgzoom.scale(pv.colorscale).event(legendsvg);
-        			zoomscale(pv.colorscale);
-        		}	
-        });
+	// var draglistener = d3.behavior.drag()
+	// 	 .on("dragstart", function(d) {
+ //            d3.event.sourceEvent.stopPropagation();
+ //            // it's important that we suppress the mouseover event on the node being dragged. Otherwise it will absorb the mouseover event and the underlying node will not detect it 
+ //            //d3.select(this).attr('pointer-events', 'none');
+ //        })
+ //        .on("drag", function(d) {
+ //        	var mousey = d3.mouse(legendsvg.node())[1];
+ //        	var sliderposition = mousey+.5*colorbar.height;
+ //        	//pv.colorscale = hScale.invert(mousey)/ymid(ymin,ymax);
+ //        	pv.colorscale = Math.log((ymax-hScale.invert(mousey))/(ymax-ymin))/Math.log((ymax-ymid(ymin,ymax))/(ymax-ymin));
+ //        	if ((mousey>0) && (mousey<colorbar.height))
+ //        		{
+ //        			slider.attr("transform","translate(-10,"+sliderposition+")");
+ //        			legendsvgzoom.scale(pv.colorscale).event(legendsvg);
+ //        			zoomscale(pv.colorscale);
+ //        		}	
+ //        });
 
-    if (ymin>=0)
-		var slider=legendsvg.append("path")
-			.call(draglistener)
-			.attr("d",d3.svg.symbol().type('triangle-up'))
-			.attr("transform","translate(-10,"+(titleheight+hScale(ymid(ymin,ymax)))+")");
+ //    if (ymin>=0)
+	// 	var slider=legendsvg.append("path")
+	// 		.call(draglistener)
+	// 		.attr("d",d3.svg.symbol().type('triangle-up'))
+	// 		.attr("transform","translate(-10,"+(titleheight+hScale(ymid(ymin,ymax)))+")");
 
 	
 	
-	legendsvg=legendsvg.append("g").attr("transform","translate(0,"+titleheight+")");
+	// legendsvg=legendsvg.append("g").attr("transform","translate(0,"+titleheight+")");
 
 
-	var legNumFormat= function(d) {
-		if (Math.abs(d)>1)
-			return d3.format(".3s")(d);
-		else if ((Math.abs(d)>5e-2) || (Math.abs(d)<1e-6))
-			return d3.format(".2f")(d);
-		else return d3.format(".f")(d);
-	};
+	// var legNumFormat= function(d) {
+	// 	if (Math.abs(d)>1)
+	// 		return d3.format(".3s")(d);
+	// 	else if ((Math.abs(d)>5e-2) || (Math.abs(d)<1e-6))
+	// 		return d3.format(".2f")(d);
+	// 	else return d3.format(".f")(d);
+	// };
 	
-	//Make the colorbar
-	legendsvg.selectAll("rect")
-		.data(colorbar.levels)
-		.enter()
-		.append("rect")
-		.attr("fill",  yScale)
-		.attr("width",20)
-		.attr("height",colorbar.height/colorbar.nlevels+1)
-		.attr("y", hScale)
-		.append("title").text(legNumFormat);
+	// //Make the colorbar
+	// legendsvg.selectAll("rect")
+	// 	.data(colorbar.levels)
+	// 	.enter()
+	// 	.append("rect")
+	// 	.attr("fill",  yScale)
+	// 	.attr("width",20)
+	// 	.attr("height",colorbar.height/colorbar.nlevels+1)
+	// 	.attr("y", hScale)
+	// 	.append("title").text(legNumFormat);
 
-	//Make the labels of the colorbar
-	legendsvg.selectAll("text.leglabel")
-		.data(colorbar.levels.filter(function(d,i) {return !(i % ~~(colorbar.nlevels/colorbar.nlabels));})) //Choose rectangles to put labels next to
-		.enter()
-		.append("text")
-		.attr("fill", "black")
-		.attr("class","leglabel")
-		.attr("font-size", colorbar.fontsize+"px")
-		.attr("x",colorbar.width+3)
-		.attr("y",function(d) {return .4*colorbar.fontsize+hScale(d);})
-		.text(legNumFormat);
+	// //Make the labels of the colorbar
+	// legendsvg.selectAll("text.leglabel")
+	// 	.data(colorbar.levels.filter(function(d,i) {return !(i % ~~(colorbar.nlevels/colorbar.nlabels));})) //Choose rectangles to put labels next to
+	// 	.enter()
+	// 	.append("text")
+	// 	.attr("fill", "black")
+	// 	.attr("class","leglabel")
+	// 	.attr("font-size", colorbar.fontsize+"px")
+	// 	.attr("x",colorbar.width+3)
+	// 	.attr("y",function(d) {return .4*colorbar.fontsize+hScale(d);})
+	// 	.text(legNumFormat);
 
-	legendsvg.append("text").attr("y",1.2*colorbar.fontsize+colorbar.height).style("font-size","10px").text("Zoom over the colorbar to change color scale");
+	// legendsvg.append("text").attr("y",1.2*colorbar.fontsize+colorbar.height).style("font-size","10px").text("Zoom over the colorbar to change color scale");
 
-	pv.SetPlotTitle(ptitle);
-	pv.lowerrightcornertext.style("font-size","10px").text("Double-click on states to toggle");
-	pv.SetXaxisLabel(".",30);
+	// pv.SetPlotTitle(ptitle);
+	// pv.lowerrightcornertext.style("font-size","10px").text("Double-click on states to toggle");
+	// pv.SetXaxisLabel(".",30);
 
 	// Timelapse animation
 	function updateyear(yr) {
