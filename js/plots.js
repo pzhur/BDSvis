@@ -6,7 +6,7 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 
 	var pv=vm.PlotView;
 
-	//pv.Refresh(data,request,vm);
+	pv.Refresh(data,request,vm);
 	
 	// var svg=pv.svg;
 	// var width=pv.width;
@@ -82,8 +82,8 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	        type: vm.model.IsContinuous(xvarr)?'line':'column',
 
 	        zoomType: 'xy',
-	        width: pv.width+pv.legendwidth,
-	        height: pv.height0,
+	        width: pv.width,
+	        height: pv.height,
 	        events: {
                 load: function() {
                 		if (vm.timelapse)

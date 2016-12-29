@@ -53,7 +53,7 @@ BDSVis.getAPIdata = function (vm) {
 
     console.log(geturl);
     
-    vm.PlotView.DisplayWaitingMessage();
+    //vm.PlotView.DisplayWaitingMessage();
     d3.json(geturl,function (data) { //Send request to the server and get response
     	if (data===null) {
     		console.log("Server sent empty response to " + geturl);

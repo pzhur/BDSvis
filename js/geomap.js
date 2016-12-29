@@ -6,26 +6,14 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	//Initialize the SVG elements and get width and length for scales
 	var pv=vm.PlotView;
-	//pv.Refresh(data,request,vm);
+	pv.Refresh(data,request,vm);
 	svg=pv.svg;
 	width=pv.width;
 	height=pv.height;
 
-	require([
-      "esri/Map",
-      "esri/views/MapView",
-      "dojo/domReady!"
-    ], function(Map, MapView){
-      var map = new Map({
-        basemap: "streets"
-      });
-      var view = new MapView({
-        container: "viewDiv",  // Reference to the scene div created in step 5
-        map: map,  // Reference to the map object created before the scene
-        zoom: 4,  // Sets the zoom level based on level of detail (LOD)
-        center: [15, 65]  // Sets the center point of view in lon/lat
-      });
-    });
+	$("#viewDiv").css({"width":pv.width, "height":pv.height});
+
+	
 
 	
 	
@@ -44,10 +32,13 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 
 	//Filter by region
-	// data = data.filter(function(d1){
-	// 	return vm.model[xvar][vm.model[xvar].map(function(d) {return d.code}).indexOf(d1[xvar])].regions.indexOf(vm.region)>-1;
-	// })
-	// vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm); 
+	data = data.filter(function(d1){
+		return vm.model[xvar][vm.model[xvar].map(function(d) {return d.code}).indexOf(d1[xvar])].regions.indexOf(vm.region)>-1;
+	})
+
+	vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm);
+
+
 	
 	
 	// //Plot the map	
@@ -56,32 +47,32 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
     //Set D3 scales
 
-	var ymin=d3.min(data, function(d) { return +d[yvar]; });
-	var ymax=d3.max(data, function(d) { return +d[yvar]; });
-	var maxabs=d3.max([Math.abs(ymin),Math.abs(ymax)]);
+	// var ymin=d3.min(data, function(d) { return +d[yvar]; });
+	// var ymax=d3.max(data, function(d) { return +d[yvar]; });
+	// var maxabs=d3.max([Math.abs(ymin),Math.abs(ymax)]);
 	
-	//Define which scale to use, for the map and the colorbar. Note that log scale can be replaced by any other here (like sqrt), the colormap will adjust accordingly.
-	var scaletype = (vm.logscale && (ymin>0))?d3.scale.log():d3.scale.linear();
-	//Midpoint of the colorscale
-	var ymid= function(ymin,ymax) {
-		return scaletype.invert(.5*(scaletype(ymax)+scaletype(ymin)));
-	};
+	// //Define which scale to use, for the map and the colorbar. Note that log scale can be replaced by any other here (like sqrt), the colormap will adjust accordingly.
+	// var scaletype = (vm.logscale && (ymin>0))?d3.scale.log():d3.scale.linear();
+	// //Midpoint of the colorscale
+	// var ymid= function(ymin,ymax) {
+	// 	return scaletype.invert(.5*(scaletype(ymax)+scaletype(ymin)));
+	// };
 
-	var yScale = scaletype.copy(); //Color scale for the map
+	// var yScale = scaletype.copy(); //Color scale for the map
 	
-	var purple="rgb(112,79,161)"; var golden="rgb(194,85,12)"; var teal="rgb(22,136,51)";
+	// var purple="rgb(112,79,161)"; var golden="rgb(194,85,12)"; var teal="rgb(22,136,51)";
 
-	if (ymin<0) //If there are negative values use blue to red scale with white(ish) for 0 and strength of color corresponding to absolute value
-		yScale.domain([-maxabs,0,maxabs]).range(["#CB2027","#eeeeee","#265DAB"]);
-	else 
-		//yScale.domain([ymin,ymax]).range(["#eeeeee","#265DAB"]);
-		yScale.domain([ymin,ymid(ymin,ymax),ymax]).range([purple,"#bbbbbb",golden]);
-		//yScale.domain([ymin,ymid,ymax]).range(["red","#ccffcc","blue"]);
+	// if (ymin<0) //If there are negative values use blue to red scale with white(ish) for 0 and strength of color corresponding to absolute value
+	// 	yScale.domain([-maxabs,0,maxabs]).range(["#CB2027","#eeeeee","#265DAB"]);
+	// else 
+	// 	//yScale.domain([ymin,ymax]).range(["#eeeeee","#265DAB"]);
+	// 	yScale.domain([ymin,ymid(ymin,ymax),ymax]).range([purple,"#bbbbbb",golden]);
+	// 	//yScale.domain([ymin,ymid,ymax]).range(["red","#ccffcc","blue"]);
 
 
-	// var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
-	// 	emptystates=0,
-	// 	timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
+	var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
+		emptystates=0,
+		timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
 
 			
 	if (vm.timelapse) { //In time lapse regime, select only the data corresponding to the current year
@@ -92,19 +83,53 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	//Put the states/MSAs in geo_data in the same order as they are in data
 
-	// var xir = data.map(LUName);
-	// //var xir = data.map(function(d) {return d[xvar]});
-	// for (var i in vm.model.geo_data[xvar]) {
-	// 	var iir = xir.indexOf(vm.model.geo_data[xvar][i].properties.name);
-	// 	if (iir === -1) { //If the state/MSA is not in data (e.g. Puerto Rico is never there), put it to the end of the array
-	// 		geo_data1[data.length+emptystates]=vm.model.geo_data[xvar][i];
-	// 		emptystates++;
-	// 	} else {
-	// 		geo_data1[iir]=vm.model.geo_data[xvar][i];
-	// 		// geo_data1[iir][xvar]=data[iir][xvar];
-	// 		// geo_data1[iir][yvar]=data[iir][yvar];
-	// 	}
-	// };
+	var xir = data.map(LUName);
+	//var xir = data.map(function(d) {return d[xvar]});
+	for (var i in vm.model.geo_data[xvar]) {
+		var iir = xir.indexOf(vm.model.geo_data[xvar][i].properties.name);
+		if (iir === -1) { //If the state/MSA is not in data (e.g. Puerto Rico is never there), put it to the end of the array
+			geo_data1[data.length+emptystates]=vm.model.geo_data[xvar][i];
+			emptystates++;
+		} else {
+			geo_data1[iir]=vm.model.geo_data[xvar][i];
+			// geo_data1[iir][xvar]=data[iir][xvar];
+			// geo_data1[iir][yvar]=data[iir][yvar];
+		}
+	};
+
+
+	//Calculates geometric center of 2D points, flat geometry
+	function geocenter(arr) {
+		return arr.reduce(function(a,b) {return [a[0]+b[0],a[1]+b[1]]})
+				.map(function(d) {return d/arr.length});
+	}
+
+	var mapcenter = 
+		geocenter(
+			geo_data1.slice(0,data.length)
+				.map(function(d) {
+					if (d.geometry.type==="Polygon") return geocenter(d.geometry.coordinates[0]);
+					else return geocenter(d.geometry.coordinates.map(function(d1){ return geocenter(d1[0]); }));
+				})
+		);
+
+	require([
+      "esri/Map",
+      "esri/views/MapView",
+      "dojo/domReady!"
+    ], function(Map, MapView){
+      var map = new Map({
+        basemap: "streets"
+      });
+      var view = new MapView({
+        container: "viewDiv",  // Reference to the scene div created in step 5
+        map: map,  // Reference to the map object created before the scene
+        zoom: 4,  // Sets the zoom level based on level of detail (LOD)
+        center: mapcenter  // Sets the center point of view in lon/lat
+      });
+    });
+
+
 
 	// Create a unit projection.
 	var projection = d3.geo.albersUsa().scale(1).translate([0, 0]);
