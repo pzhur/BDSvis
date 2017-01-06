@@ -47,27 +47,27 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
     //Set D3 scales
 
-	// var ymin=d3.min(data, function(d) { return +d[yvar]; });
-	// var ymax=d3.max(data, function(d) { return +d[yvar]; });
-	// var maxabs=d3.max([Math.abs(ymin),Math.abs(ymax)]);
+	var ymin=d3.min(data, function(d) { return +d[yvar]; });
+	var ymax=d3.max(data, function(d) { return +d[yvar]; });
+	var maxabs=d3.max([Math.abs(ymin),Math.abs(ymax)]);
 	
-	// //Define which scale to use, for the map and the colorbar. Note that log scale can be replaced by any other here (like sqrt), the colormap will adjust accordingly.
-	// var scaletype = (vm.logscale && (ymin>0))?d3.scale.log():d3.scale.linear();
-	// //Midpoint of the colorscale
-	// var ymid= function(ymin,ymax) {
-	// 	return scaletype.invert(.5*(scaletype(ymax)+scaletype(ymin)));
-	// };
+	//Define which scale to use, for the map and the colorbar. Note that log scale can be replaced by any other here (like sqrt), the colormap will adjust accordingly.
+	var scaletype = (vm.logscale && (ymin>0))?d3.scale.log():d3.scale.linear();
+	//Midpoint of the colorscale
+	var ymid= function(ymin,ymax) {
+		return scaletype.invert(.5*(scaletype(ymax)+scaletype(ymin)));
+	};
 
-	// var yScale = scaletype.copy(); //Color scale for the map
+	var yScale = scaletype.copy(); //Color scale for the map
 	
-	// var purple="rgb(112,79,161)"; var golden="rgb(194,85,12)"; var teal="rgb(22,136,51)";
+	var purple="rgb(112,79,161)"; var golden="rgb(194,85,12)"; var teal="rgb(22,136,51)";
 
-	// if (ymin<0) //If there are negative values use blue to red scale with white(ish) for 0 and strength of color corresponding to absolute value
-	// 	yScale.domain([-maxabs,0,maxabs]).range(["#CB2027","#eeeeee","#265DAB"]);
-	// else 
-	// 	//yScale.domain([ymin,ymax]).range(["#eeeeee","#265DAB"]);
-	// 	yScale.domain([ymin,ymid(ymin,ymax),ymax]).range([purple,"#bbbbbb",golden]);
-	// 	//yScale.domain([ymin,ymid,ymax]).range(["red","#ccffcc","blue"]);
+	if (ymin<0) //If there are negative values use blue to red scale with white(ish) for 0 and strength of color corresponding to absolute value
+		yScale.domain([-maxabs,0,maxabs]).range(["#CB2027","#eeeeee","#265DAB"]);
+	else 
+		//yScale.domain([ymin,ymax]).range(["#eeeeee","#265DAB"]);
+		yScale.domain([ymin,ymid(ymin,ymax),ymax]).range([purple,"#bbbbbb",golden]);
+		//yScale.domain([ymin,ymid,ymax]).range(["red","#ccffcc","blue"]);
 
 
 	var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
@@ -103,7 +103,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		return arr.reduce(function(a,b) {return [a[0]+b[0],a[1]+b[1]]})
 				.map(function(d) {return d/arr.length});
 	}
-
+	
 	var mapcenter = 
 		geocenter(
 			geo_data1.slice(0,data.length)
@@ -113,29 +113,163 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				})
 		);
 
+	var wkid=102300;
+
+	
+
 	require([
-      "esri/Map",
-      "esri/views/MapView",
-      "dojo/domReady!"
-    ], function(Map, MapView){
-      var map = new Map({
-        basemap: "streets"
+		"esri/Map",
+		"esri/views/MapView",
+		"esri/geometry/Extent",
+		"esri/geometry/Polygon",
+		"esri/geometry/Geometry",
+		"esri/Graphic",
+		"esri/layers/FeatureLayer",
+		"esri/layers/GraphicsLayer",
+		"esri/renderers/SimpleRenderer",
+		"esri/symbols/SimpleFillSymbol",
+		//"esri/geometry/support/jsonUtils",
+		"dojo/domReady!"
+    ], function(Map, MapView, Extent, Polygon, Geometry, Graphic, FeatureLayer, GraphicsLayer, SimpleRenderer, SimpleFillSymbol){
+
+		function createGraphics(geodata) {
+        // raw GeoJSON data
+	        var geoJson = geodata;
+
+	        // Create an array of Graphics from each GeoJSON feature
+			return geoJson.map(function(feature, i) {
+				return { 
+					geometry: new Polygon({
+						rings: (feature.geometry.type==="Polygon")?feature.geometry.coordinates[0]:feature.geometry.coordinates.map(function(d1) {return d1[0]}),
+						//spatialReference: { wkid: wkid }
+					}),
+					// select only the attributes you care about
+					attributes: {
+						geoid: feature.properties.geoid,
+						landarea: feature.properties.landarea,
+						name: feature.properties.name,
+						value: +data[i].value,
+					}
+			  	};
+			});
+	    }
+     	var gr = createGraphics(geo_data1.slice(0,data.length));
+
+     	var defaultSym = new SimpleFillSymbol({
+			outline: {
+				color: "lightgray",
+				width: 0.5
+        	}
+      	});
+
+      	var renderer = new SimpleRenderer({
+        symbol: defaultSym,
+        label: "% population in poverty by county",
+        visualVariables: [{
+			type: "color",
+			field: "value",
+			//normalizationField: "TOTPOP_CY",
+			stops: [
+				{
+					value: 7000,
+					color: "#FFFCD4",
+					label: "<10%"
+				},
+				{
+					value: 20000,
+					color: "#350242",
+					label: ">30%"
+			}]
+        }]
       });
-      var view = new MapView({
-        container: "viewDiv",  // Reference to the scene div created in step 5
-        map: map,  // Reference to the map object created before the scene
-        zoom: 4,  // Sets the zoom level based on level of detail (LOD)
-        center: mapcenter  // Sets the center point of view in lon/lat
+
+		function createLayer(graphics) {
+			lyr = new GraphicsLayer({
+				// source: graphics, // autocast as an array of esri/Graphic
+				// // create an instance of esri/layers/support/Field for each field object
+				// //fields: fields, // This is required when creating a layer from Graphics
+				// objectIdField: "geoid", // This must be defined when creating a layer from Graphics
+				// renderer: renderer, // set the visualization on the layer
+				// spatialReference: {
+				// 	wkid: wkid
+				// },
+				// geometryType: "polygon", // Must be set when creating a layer from Graphics
+			//popupTemplate: pTemplate
+			});
+
+			//map.add(lyr);
+			return lyr;
+		}
+
+
+		//console.log(data.map(function (d) {return d.value}))
+
+		var lr = createLayer(gr);
+
+		var polygon = new Polygon({
+        rings: [
+          [-64.78, 32.3],
+          [-66.07, 18.45],
+          [-80.21, 25.78],
+        ],
+        spatialReference: { wkid: wkid }	
       });
+
+		var polygon1 = new Polygon({
+        rings: gr[0].geometry.rings
+        
+      });
+
+		console.log(polygon, gr[0].geometry)
+
+      // Create a symbol for rendering the graphic
+     // var fillSymbol = 
+
+      // Add the geometry and symbol to a new graphic
+     
+      var polygonGraphics = gr.map(function(g){
+      		return new Graphic({
+      			geometry: g.geometry,
+      			symbol: new SimpleFillSymbol({
+					color: yScale(g.attributes.value),//[227, 139, 79, 0.8],
+					outline: { // autocasts as new SimpleLineSymbol()
+						color: [255, 255, 255],
+						width: .3
+        			}
+				})
+      		})
+      })
+
+		var map = new Map({
+			basemap: "gray",
+			layers: [lr]
+		});
+
+		var view = new MapView({
+			container: "viewDiv",  // Reference to the scene div created in step 5
+			map: map,  // Reference to the map object created before the scene
+			zoom: 4,  // Sets the zoom level based on level of detail (LOD)
+			center: mapcenter,  // Sets the center point of view in lon/lat
+		});
+
+		view.graphics.addMany(polygonGraphics);
+
+		// view.extent = new Extent({
+		// 	xmin: -9177882.740387835,
+		// 	ymin: 4246761.27629837,
+		// 	xmax: -9176720.658692285,
+		// 	ymax: 4247967.548150893,
+		// 	spatialReference: wkid
+		// });
     });
 
 
 
-	// Create a unit projection.
-	var projection = d3.geo.albersUsa().scale(1).translate([0, 0]);
+	// // Create a unit projection.
+	// var projection = d3.geo.albersUsa().scale(1).translate([0, 0]);
 
-	// Create a path generator.
-	var path = d3.geo.path().projection(projection);
+	// // Create a path generator.
+	// var path = d3.geo.path().projection(projection);
 
 	// Compute the bounds of a feature of interest, then derive scale & translate such that it fits within the bounds
 	// var b = geo_data1.slice(0,data.length).map(path.bounds),
