@@ -254,13 +254,13 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 		view.graphics.addMany(polygonGraphics);
 
-		// view.extent = new Extent({
-		// 	xmin: -9177882.740387835,
-		// 	ymin: 4246761.27629837,
-		// 	xmax: -9176720.658692285,
-		// 	ymax: 4247967.548150893,
-		// 	spatialReference: wkid
-		// });
+		view.extent = new Extent({
+			xmin: -9177882.740387835,
+			ymin: 4246761.27629837,
+			xmax: -9176720.658692285,
+			ymax: 4247967.548150893,
+			spatialReference: wkid
+		});
     });
 
 
