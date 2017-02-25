@@ -15,8 +15,6 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	
 
-	
-	
 	var yvar=request[vm.model.yvars];
 	var xvar=request.xvar;
 
@@ -98,10 +96,21 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	};
 
 
+
 	//Calculates geometric center of 2D points, flat geometry
 	function geocenter(arr) {
 		return arr.reduce(function(a,b) {return [a[0]+b[0],a[1]+b[1]]})
 				.map(function(d) {return d/arr.length});
+	}
+
+	//Calculates xmin,ymin of 2D points
+	function xymin(arr) {
+		return arr.reduce(function(a,b){return [Math.min(a[0],b[0]),Math.min(a[1],b[1])]});
+	}
+
+	//Calculates xmax,ymax of 2D points
+	function xymax(arr) {
+		return arr.reduce(function(a,b){return [Math.max(a[0],b[0]),Math.max(a[1],b[1])]});
 	}
 	
 	var mapcenter = 
@@ -113,7 +122,25 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				})
 		);
 
-	var wkid=102300;
+	var maplowboundary = 
+		xymin(
+			geo_data1.slice(0,data.length)
+				.map(function(d) {
+					if (d.geometry.type==="Polygon") return xymin(d.geometry.coordinates[0]);
+					else return xymin(d.geometry.coordinates.map(function(d1){ return xymin(d1[0]); }));
+				})
+		);
+
+	var maphighboundary = 
+		xymax(
+			geo_data1.slice(0,data.length)
+				.map(function(d) {
+					if (d.geometry.type==="Polygon") return xymax(d.geometry.coordinates[0]);
+					else return xymax(d.geometry.coordinates.map(function(d1){ return xymax(d1[0]); }));
+				})
+		);
+
+	var wkid=102100;
 
 	
 
@@ -121,6 +148,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		"esri/Map",
 		"esri/views/MapView",
 		"esri/geometry/Extent",
+		"esri/geometry/Point",
 		"esri/geometry/Polygon",
 		"esri/geometry/Geometry",
 		"esri/Graphic",
@@ -128,9 +156,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		"esri/layers/GraphicsLayer",
 		"esri/renderers/SimpleRenderer",
 		"esri/symbols/SimpleFillSymbol",
+		"esri/symbols/SimpleMarkerSymbol",
+		"esri/geometry/support/webMercatorUtils",
 		//"esri/geometry/support/jsonUtils",
 		"dojo/domReady!"
-    ], function(Map, MapView, Extent, Polygon, Geometry, Graphic, FeatureLayer, GraphicsLayer, SimpleRenderer, SimpleFillSymbol){
+    ], function(Map, MapView, Extent, Point, Polygon, Geometry, Graphic, FeatureLayer, GraphicsLayer, SimpleRenderer, SimpleFillSymbol,SimpleMarkerSymbol,webMercatorUtils){
 
 		function createGraphics(geodata) {
         // raw GeoJSON data
@@ -155,114 +185,159 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	    }
      	var gr = createGraphics(geo_data1.slice(0,data.length));
 
-     	var defaultSym = new SimpleFillSymbol({
-			outline: {
-				color: "lightgray",
-				width: 0.5
+     	var fields = [
+			{
+				name: "geoid",
+				alias: "geoid",
+				type: "int"
+			}, {
+				name: "landarea",
+				alias: "landarea",
+				type: "int"
+			}, {
+				name: "name",
+				alias: "name",
+				type: "string"
+			}, {
+				name: "value",
+				alias: "value",
+				type: "int"
+			}
+     	];
+
+     	var pTemplate = {
+     		title: "name",
+     		content: [{
+          		type: "fields",
+         		fieldInfos: [{
+         			fieldname: "value",
+         			label: "Value",
+         			visible: true
+         		}
+         		] 
+         	}]
+     	};
+
+
+
+		var renderer = new SimpleRenderer({
+			symbol: new SimpleMarkerSymbol({
+						color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
+						outline: { // autocasts as new SimpleLineSymbol()
+							color: [255, 255, 255],
+							width: .3
+	        			}
+        			}),
+	         visualVariables: [{
+				// type: "color",
+				// field: "value",
+				// //normalizationField: "TOTPOP_CY",
+				// stops: [
+				// 	{
+				// 		value: ymin,
+				// 		color: purple,
+				// 		label: "<10%"
+				// 	},
+				// 	{
+				// 		value: ymid(ymin,ymax),
+				// 		color: "#bbbbbb",
+				// 		label: "<10%"
+				// 	},
+				// 	{
+				// 		value: ymax,
+				// 		color: golden,
+				// 		label: ">30%"
+				// }]
+    //     	},{
+        		type: "size",
+        		field: "value",
+        		minDataValue: ymin,
+        		maxDataValue: ymax,
+        		valueUnit: "unknown",
+        		minSize: "6px",
+        		maxSize: "80px"
         	}
+        	]
+		});
+
+		console.log(renderer)
+
+   		 var polygonGraphics = gr.map(function(g){
+      		return new Graphic({
+      			geometry: g.geometry,
+    //   			symbol: new SimpleFillSymbol({
+				// 	color: yScale(g.attributes.value),//[227, 139, 79, 0.8],
+				// 	outline: { // autocasts as new SimpleLineSymbol()
+				// 		color: [255, 255, 255],
+				// 		width: .3
+    //     			}
+				// })
+      		})
       	});
 
-      	var renderer = new SimpleRenderer({
-        symbol: defaultSym,
-        label: "% population in poverty by county",
-        visualVariables: [{
-			type: "color",
-			field: "value",
-			//normalizationField: "TOTPOP_CY",
-			stops: [
-				{
-					value: 7000,
-					color: "#FFFCD4",
-					label: "<10%"
-				},
-				{
-					value: 20000,
-					color: "#350242",
-					label: ">30%"
-			}]
-        }]
-      });
-
 		function createLayer(graphics) {
-			lyr = new GraphicsLayer({
-				// source: graphics, // autocast as an array of esri/Graphic
-				// // create an instance of esri/layers/support/Field for each field object
-				// //fields: fields, // This is required when creating a layer from Graphics
-				// objectIdField: "geoid", // This must be defined when creating a layer from Graphics
-				// renderer: renderer, // set the visualization on the layer
-				// spatialReference: {
-				// 	wkid: wkid
-				// },
-				// geometryType: "polygon", // Must be set when creating a layer from Graphics
-			//popupTemplate: pTemplate
+			lyrg = new GraphicsLayer({
+				graphics: graphics,
 			});
 
-			//map.add(lyr);
-			return lyr;
+			lyrf = new FeatureLayer({
+				source: graphics, // autocast as an array of esri/Graphic
+				objectIdField: "geoid",
+				geometryType: "polygon",
+				fields: fields,
+				renderer: renderer, 
+				popupTemplate: pTemplate,
+				spatialReference: { wkid: wkid }
+				
+			});
+
+			return lyrf;
 		}
 
 
 		//console.log(data.map(function (d) {return d.value}))
 
-		var lr = createLayer(gr);
+		var lr = createLayer(polygonGraphics);
 
-		var polygon = new Polygon({
-        rings: [
-          [-64.78, 32.3],
-          [-66.07, 18.45],
-          [-80.21, 25.78],
-        ],
-        spatialReference: { wkid: wkid }	
-      });
-
-		var polygon1 = new Polygon({
-        rings: gr[0].geometry.rings
-        
-      });
-
-		console.log(polygon, gr[0].geometry)
+		//console.log(polygon, gr[0].geometry)
 
       // Create a symbol for rendering the graphic
      // var fillSymbol = 
 
       // Add the geometry and symbol to a new graphic
      
-      var polygonGraphics = gr.map(function(g){
-      		return new Graphic({
-      			geometry: g.geometry,
-      			symbol: new SimpleFillSymbol({
-					color: yScale(g.attributes.value),//[227, 139, 79, 0.8],
-					outline: { // autocasts as new SimpleLineSymbol()
-						color: [255, 255, 255],
-						width: .3
-        			}
-				})
-      		})
-      })
+     	//lr.graphics.addMany(polygonGraphics);
 
 		var map = new Map({
-			basemap: "gray",
+			//basemap: "gray",
 			layers: [lr]
 		});
 
 		var view = new MapView({
 			container: "viewDiv",  // Reference to the scene div created in step 5
 			map: map,  // Reference to the map object created before the scene
-			zoom: 4,  // Sets the zoom level based on level of detail (LOD)
+			//zoom: 4,  // Sets the zoom level based on level of detail (LOD)
 			center: mapcenter,  // Sets the center point of view in lon/lat
+			
 		});
 
-		view.graphics.addMany(polygonGraphics);
+		
+		
+		var xyminmerc = webMercatorUtils.lngLatToXY(maplowboundary[0],maplowboundary[1]),
+			xymaxmerc = webMercatorUtils.lngLatToXY(maphighboundary[0],maphighboundary[1])
 
-		// view.extent = new Extent({
-		// 	xmin: -9177882.740387835,
-		// 	ymin: 4246761.27629837,
-		// 	xmax: -9176720.658692285,
-		// 	ymax: 4247967.548150893,
-		// 	spatialReference: wkid
-		// });
+
+		view.extent = new Extent({
+	            xmin: xyminmerc[0],
+	            ymin: xyminmerc[1],
+	            xmax: xymaxmerc[0],
+	            ymax: xymaxmerc[1],
+	            spatialReference: wkid
+        });
+
     });
 
+	
 
 
 	// // Create a unit projection.

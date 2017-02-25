@@ -116,8 +116,8 @@ BDSVis.processAPIdata = function(data,request,vm) {
 	
 	if (vm.geomap())
 		BDSVis.makeMap(data,request,vm);
-	else if ((vm.heatchart) && !(vm.model.IsContinuous(request.xvar)))
-		BDSVis.makeHeatChart(data,request,vm);
+	// else if ((vm.heatchart) && !(vm.model.IsContinuous(request.xvar)))
+	// 	BDSVis.makeHeatChart(data,request,vm);
 	else
 		BDSVis.makePlot(data,request,vm);
 };
