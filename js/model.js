@@ -326,7 +326,7 @@ BDSVis.Model = {
 			tmod.geo_data.state=topojson.feature(geodata,geodata.objects.states).features;
 			tmod.geo_data["metropolitan statistical area"]=topojson.feature(geodata,geodata.objects.msa).features;
 			
-			tmod.full_geo_data=geodata;
+			//tmod.full_geo_data=geodata;
 			
 			tmod["metropolitan statistical area"] = 
 			tmod.geo_data["metropolitan statistical area"]
