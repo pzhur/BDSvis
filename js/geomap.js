@@ -122,17 +122,18 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	require([
 		"esri/Map",
 		"esri/views/MapView",
+		"esri/views/SceneView",
 		"esri/geometry/Extent",
 		"esri/geometry/Polygon",
 		"esri/layers/FeatureLayer",
 		"esri/renderers/SimpleRenderer",
 		"esri/symbols/SimpleFillSymbol",
+		"esri/symbols/PolygonSymbol3D",
+		"esri/symbols/ExtrudeSymbol3DLayer",
 		"esri/widgets/Legend",
 		"esri/geometry/support/webMercatorUtils",
 		"dojo/domReady!"
-    ], function(Map, MapView, Extent, Polygon,FeatureLayer,SimpleRenderer, SimpleFillSymbol,Legend,webMercatorUtils){
-
-    	var legend
+    ], function(Map, MapView, SceneView, Extent, Polygon,FeatureLayer,SimpleRenderer,SimpleFillSymbol,PolygonSymbol3D,ExtrudeSymbol3DLayer,Legend,webMercatorUtils){
 
      	var fields = [
 			{
@@ -183,33 +184,58 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		};
 
 		var renderer = new SimpleRenderer({
-			symbol: new SimpleFillSymbol({
-						color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
-						outline: { // autocasts as new SimpleLineSymbol()
-							color: [255, 255, 255],
-							width: .3
-	        			}
-        			}),
-	         visualVariables: [{
-				type: "color",
-				field: "value",
-				stops: [
-					{
-						value: ymin,
-						color: colorstopsarray[0],
-						label: ymin
-					},
-					{
-						value: ymid(ymin,ymax),
-						color: colorstopsarray[1],
-						label: ymid(ymin,ymax)
-					},
-					{
-						value: ymax,
-						color: colorstopsarray[2],
-						label: ymax
-				}]
-        	}]
+			symbol: new PolygonSymbol3D({
+							symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
+						}),
+			// symbol: new SimpleFillSymbol({
+			// 			color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
+			// 			outline: { // autocasts as new SimpleLineSymbol()
+			// 				color: [255, 255, 255],
+			// 				width: .3
+			// 			}
+			// 		}),
+	         visualVariables: [
+	        	{
+					type: "color",
+					field: "value",
+					stops: [
+						{
+							value: ymin,
+							color: colorstopsarray[0],
+							label: ymin
+						},
+						{
+							value: ymid(ymin,ymax),
+							color: colorstopsarray[1],
+							label: ymid(ymin,ymax)
+						},
+						{
+							value: ymax,
+							color: colorstopsarray[2],
+							label: ymax
+					}]
+        		},
+        		{
+					type: "size",
+					field: "value",
+					stops: [
+						{
+							value: ymin,
+							size: 10000,
+							label: ymin
+						},
+						// {
+						// 	value: ymid(ymin,ymax),
+						// 	color: ymid(10000,300000),
+						// 	label: ymid(ymin,ymax)
+						// },
+						{
+							value: ymax,
+							size: 300000,
+							label: ymax
+					}]
+        		},
+        	]
 		});
 
 		//$('body').append(JSON.stringify(geo_data1))
@@ -219,7 +245,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			//layers: [lr]
 		});
 
-		var view = new MapView({
+		// var view = new MapView({
+		var view = new SceneView({
 			container: "viewDiv",  // Reference to the scene div created in step 5
 			map: map,  // Reference to the map object created before the scene
 			//zoom: 4,  // Sets the zoom level based on level of detail (LOD)
@@ -283,15 +310,14 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	    }
 
 	    function createLegend(layer) {
-	    	console.log(legend)
         // if the legend already exists, then update it with the new layer
-        if (legend) {
-          legend.layerInfos = [{
+        if (vm.legend) {
+          vm.legend.layerInfos = [{
             layer: layer,
-            title: "Magnitude"
+            title: ptitle
           }];
         } else {
-          legend = new Legend({
+          vm.legend = new Legend({
             view: view,
             layerInfos: [
             {
