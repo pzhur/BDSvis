@@ -184,16 +184,16 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		};
 
 		var renderer = new SimpleRenderer({
-			symbol: new PolygonSymbol3D({
-							symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
-						}),
-			// symbol: new SimpleFillSymbol({
-			// 			color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
-			// 			outline: { // autocasts as new SimpleLineSymbol()
-			// 				color: [255, 255, 255],
-			// 				width: .3
-			// 			}
-			// 		}),
+			// symbol: new PolygonSymbol3D({
+			// 				symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
+			// 			}),
+			symbol: new SimpleFillSymbol({
+						color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
+						outline: { // autocasts as new SimpleLineSymbol()
+							color: [255, 255, 255],
+							width: .3
+						}
+					}),
 	         visualVariables: [
 	        	{
 					type: "color",
@@ -215,26 +215,26 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 							label: ymax
 					}]
         		},
-        		{
-					type: "size",
-					field: "value",
-					stops: [
-						{
-							value: ymin,
-							size: 10000,
-							label: ymin
-						},
-						// {
-						// 	value: ymid(ymin,ymax),
-						// 	color: ymid(10000,300000),
-						// 	label: ymid(ymin,ymax)
-						// },
-						{
-							value: ymax,
-							size: 300000,
-							label: ymax
-					}]
-        		},
+     //    		{
+					// type: "size",
+					// field: "value",
+					// stops: [
+					// 	{
+					// 		value: ymin,
+					// 		size: 10000,
+					// 		label: ymin
+					// 	},
+					// 	// {
+					// 	// 	value: ymid(ymin,ymax),
+					// 	// 	color: ymid(10000,300000),
+					// 	// 	label: ymid(ymin,ymax)
+					// 	// },
+					// 	{
+					// 		value: ymax,
+					// 		size: 300000,
+					// 		label: ymax
+					// }]
+     //    		},
         	]
 		});
 
