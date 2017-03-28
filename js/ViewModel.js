@@ -73,7 +73,7 @@ BDSVis.ViewModel = function(model) {
 		return vm.model.IsGeomapvar(vm.xvar);
 	};
 
-	this.region = "New England";
+	this.region = "US";
 	this.cartogram = 0;
 	this.heatchart = 0;
 
@@ -132,7 +132,7 @@ BDSVis.ViewModel = function(model) {
 	});
 
 	//Initial values of X-axis variable and C- variable
-	this.xvar = "geo";
+	this.xvar = "sic1";
 	this.cvar = "fage4";
 
 	this.PlotView.Init();
