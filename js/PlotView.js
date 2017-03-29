@@ -101,10 +101,10 @@ BDSVis.PlotView = {
 			};
 		};
 		
-		this.AdjustUIElements();
+		this.AdjustUIElements(vm);
 	},
 
-	AdjustUIElements : function() {
+	AdjustUIElements : function(vm) {
 		// Fully compatible according to https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY?redirectlocale=en-US&redirectslug=DOM%2Fwindow.scrollY
 		// var supportPageOffset = window.pageXOffset !== undefined;
 		// var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
@@ -118,6 +118,9 @@ BDSVis.PlotView = {
 		// var chartrect=this.svgcont.node().getBoundingClientRect();
 		// var xaxlrect=this.xaxislabel.node().getBoundingClientRect();
 
+		var chartarea=$(vm.getPlotContainer())[0];
+		chartarea.offsetTop+chartarea.offsetHeight+chartarea.offsetBottom
+
 		var sellength=this.xvarselector.node().getBoundingClientRect();
 		sellength = sellength.right-sellength.left;
 
@@ -126,15 +129,19 @@ BDSVis.PlotView = {
 		
 		this.xvarselector
 			.style("position","absolute")
-			.style("left",(this.width)/2.+"px")
-			.style("top",this.height+"px");
+			// .style("left",(this.width)/2.+"px")
+			// .style("top",this.height+"px");
+			.style("left",chartarea.offsetLeft+.5*(chartarea.offsetWidth-$("#xvarselector")[0].offsetWidth)+"px")
+			.style("top",chartarea.offsetTop+chartarea.offsetHeight+"px");
 			// .style("left",(chartrect.left+wsX+(this.margin.left+this.margin.right+this.width-sellength)/2.)+"px")
 			// .style("top",(xaxlrect.top+wsY)+"px");
 
 		this.cvarselector
 			.style("position","absolute")
-			.style("left",this.width-csellength+"px")
-			.style("top",this.height+"px")
+			// .style("left",this.width-csellength+"px")
+			// .style("top",this.height+"px")
+			.style("left",chartarea.offsetLeft+chartarea.offsetWidth+"px")
+			.style("top",chartarea.offsetTop+"px");
 			// .style("left",(chartrect.left+wsX+this.width+this.margin.left+ this.margin.right)+"px")
 			// .style("top",(chartrect.top+wsY+this.margin.top)+"px");
 

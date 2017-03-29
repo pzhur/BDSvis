@@ -40,16 +40,13 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	var ymin=data.map(function(d){return +d[yvar]}).reduce(arraymin)
 	var ymax=data.map(function(d){return +d[yvar]}).reduce(arraymax)
 	var maxabs=Math.max([Math.abs(ymin),Math.abs(ymax)]);
-	
-	//Define which scale to use, for the map and the colorbar. Note that log scale can be replaced by any other here (like sqrt), the colormap will adjust accordingly.
-	var scaletype = (vm.logscale && (ymin>0))?d3.scale.log():d3.scale.linear();
-	//Midpoint of the colorscale
+
 	var ymid= function(ymin,ymax) {
 		return (vm.logscale && (ymin>0))?Math.sqrt(ymin*ymax):.5*(ymin+ymax)
 		//return scaletype.invert(.5*(scaletype(ymax)+scaletype(ymin)));
 	};
 
-	var yScale = scaletype.copy(); //Color scale for the map
+	//var yScale = scaletype.copy(); //Color scale for the map
 	
 	var purple="rgb(112,79,161)",
 		golden="rgb(194,85,12)",
@@ -91,11 +88,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	geo_data1continental=geo_data1.filter(function(d) {return((d.properties.name!=="Alaska")&&(d.properties.name!=="Hawaii"))});
 
 
-	// //Calculates geometric center of 2D points, flat geometry
-	// function geocenter(arr) {
-	// 	return arr.reduce(function(a,b) {return [a[0]+b[0],a[1]+b[1]]})
-	// 			.map(function(d) {return d/arr.length});
-	// }
+	//Calculates geometric center of 2D points, flat geometry
+	function geocenter(arr) {
+		return arr.reduce(function(a,b) {return [a[0]+b[0],a[1]+b[1]]})
+				.map(function(d) {return d/arr.length});
+	}
 
 	//Calculates xmin,ymin of 2D points
 	function xymin(arr) {return arr.reduce(function(a,b){return [Math.min(a[0],b[0]),Math.min(a[1],b[1])]});}
@@ -109,7 +106,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			else return xymin(d.geometry.coordinates.map(function(d1){ return func(d1[0]); }))
 	}
 
-	//var mapcenter = geocenter(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
+	var mapcenter = geocenter(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
 
 	var maplowboundary = xymin(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymin)}));
 
@@ -215,65 +212,58 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 							label: ymax
 					}]
         		},
-     //    		{
-					// type: "size",
-					// field: "value",
-					// stops: [
-					// 	{
-					// 		value: ymin,
-					// 		size: 10000,
-					// 		label: ymin
-					// 	},
-					// 	// {
-					// 	// 	value: ymid(ymin,ymax),
-					// 	// 	color: ymid(10000,300000),
-					// 	// 	label: ymid(ymin,ymax)
-					// 	// },
-					// 	{
-					// 		value: ymax,
-					// 		size: 300000,
-					// 		label: ymax
-					// }]
-     //    		},
         	]
 		});
 
 		//$('body').append(JSON.stringify(geo_data1))
 
-		var map = new Map({
-			basemap: "gray",
-			//layers: [lr]
-		});
+		//var 
+		if (pv.arcgismap===undefined)
+			pv.arcgismap = new Map({
+				basemap: "gray",
+				//layers: [lr]
+			});
+		else pv.arcgismap.removeAll()
 
-		var view = new MapView({
-		//var view = new SceneView({
+		var viewparams = {
 			container: "viewDiv",  // Reference to the scene div created in step 5
-			map: map,  // Reference to the map object created before the scene
+			map: pv.arcgismap,  // Reference to the map object created before the scene
 			//zoom: 4,  // Sets the zoom level based on level of detail (LOD)
 			//center: mapcenter,  // Sets the center point of view in lon/lat
-			 ui: {
-          padding: {
-            bottom: 15,
-            right: 0
-          }}
-			
-		});
+			ui: {
+				padding: {
+				bottom: 15,
+				right: 0
+			}}	
+		};
 
+		var mapin3D = false;
 
-		createLegend(createLayer(createGraphics(geo_data1)))
+		if (pv.arcgisview===undefined)
+			pv.arcgisview = (mapin3D)?(new SceneView(viewparams)):(new MapView(viewparams));
+
+		var graphics=createGraphics(geo_data1);
+
+		var lr=createLayer(graphics)
+			.then(function(layer) {
+				//console.log("layer done")
+				createLegend(layer)
+			})
 		
-		
-		var xyminmerc = webMercatorUtils.lngLatToXY(maplowboundary[0],maplowboundary[1]),
-			xymaxmerc = webMercatorUtils.lngLatToXY(maphighboundary[0],maphighboundary[1])
 
+		pv.arcgisview
+			.then(function(view){
+				pv.AdjustUIElements(vm)
+				view.goTo({
+					target: graphics.filter(function(d){return (d.attributes.name!="Alaska" && d.attributes.name!="Hawaii");}).map(function(d){return d.geometry}),
+					heading: 0,
+					//tilt:
+				}).then(function() {
+					if (mapin3D)
+						view.zoom = view.zoom+.75 
+				})
+			}).otherwise(function(err) {console.log("view rejected:",err)})
 
-		view.extent = new Extent({
-	            xmin: xyminmerc[0],
-	            ymin: xyminmerc[1],
-	            xmax: xymaxmerc[0],
-	            ymax: xymaxmerc[1],
-	            spatialReference: wkid
-        });
 
         function createLayer(graphics) {
 			lyrf = new FeatureLayer({
@@ -283,10 +273,9 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				fields: fields,
 				renderer: renderer, 
 				popupTemplate: pTemplate,
-				spatialReference: { wkid: wkid }
-				
+				spatialReference: { wkid: wkid }		
 			});
-			map.add(lyrf)
+			pv.arcgismap.add(lyrf)
 			return lyrf;
 		}
 
@@ -311,14 +300,14 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	    function createLegend(layer) {
         // if the legend already exists, then update it with the new layer
-        if (vm.legend) {
-          vm.legend.layerInfos = [{
+        if (pv.legend) {
+          pv.legend.layerInfos = [{
             layer: layer,
             title: ptitle
           }];
         } else {
-          vm.legend = new Legend({
-            view: view,
+          pv.legend = new Legend({
+            view: pv.arcgisview,
             layerInfos: [
             {
               layer: layer,

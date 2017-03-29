@@ -15,6 +15,10 @@ BDSVis.ViewModel = function(model) {
 	//Reference to the UI elements selecting variables;
 	this.UIView = BDSVis.UIView;
 
+	this.getPlotContainer = function() {
+		return vm.geomap()?("#viewDiv"):("#hccont")
+	}
+
 	this.ActualVarCode = function(varcode) {
 		//Checks if the varname is group variable, then returns code of the variable selected. 
 		//If not group variable just returns the input (supposedly the variable code)
@@ -73,7 +77,7 @@ BDSVis.ViewModel = function(model) {
 		return vm.model.IsGeomapvar(vm.xvar);
 	};
 
-	this.region = "US";
+	this.region = "New England";
 	this.cartogram = 0;
 	this.heatchart = 0;
 
@@ -132,7 +136,7 @@ BDSVis.ViewModel = function(model) {
 	});
 
 	//Initial values of X-axis variable and C- variable
-	this.xvar = "sic1";
+	this.xvar = "geo";
 	this.cvar = "fage4";
 
 	this.PlotView.Init();

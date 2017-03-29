@@ -117,5 +117,6 @@ BDSVis.UIView = {
 	ToggleMapGraph : function(geomap) {
 		d3.select("#hccont").style("display",geomap?"none":"block");
 		d3.select("#viewDiv").style("display",geomap?"block":"none");
+		d3.select("#infoDiv").style("display",geomap?"block":"none");
 	},
 }

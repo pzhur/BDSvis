@@ -201,6 +201,10 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 							}
 				})
 	});
+
+	
+	pv.AdjustUIElements(vm)
+
 	
 
     function intervalfunction() {
