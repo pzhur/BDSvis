@@ -16,6 +16,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	
 
 	var yvar=request[vm.model.yvars];
+	var yvarfullname=vm.model.NameLookUp(yvar,vm.model.yvars)
 	var xvar=request.xvar;
 	var xvarr= vm.model.LookUpVar(xvar);
 
@@ -43,10 +44,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var ymid= function(ymin,ymax) {
 		return (vm.logscale && (ymin>0))?Math.sqrt(ymin*ymax):.5*(ymin+ymax)
-		//return scaletype.invert(.5*(scaletype(ymax)+scaletype(ymin)));
 	};
-
-	//var yScale = scaletype.copy(); //Color scale for the map
 	
 	var purple="rgb(112,79,161)",
 		golden="rgb(194,85,12)",
@@ -106,11 +104,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			else return xymin(d.geometry.coordinates.map(function(d1){ return func(d1[0]); }))
 	}
 
-	var mapcenter = geocenter(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
+	/*var mapcenter = geocenter(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
 
 	var maplowboundary = xymin(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymin)}));
 
-	var maphighboundary = xymax(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymax)}));
+	var maphighboundary = xymax(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymax)}));*/
 
 	var wkid=102100;
 
@@ -147,7 +145,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				type: "string"
 			}, {
 				name: "value",
-				alias: "value",
+				alias: yvarfullname,
 				type: "int"
 			}
      	];
@@ -158,14 +156,14 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				type: "fields",
 				fieldInfos: [ {
 					fieldName: "value",
-					label: vm.model.NameLookUp(yvar,vm.model.yvars),
+					label: yvarfullname,
 				}
 				]
 			}]
 		};
 		
 		//Set the title of the plot and fill the popup template
-		var ptitle=vm.model.NameLookUp(yvar,vm.model.yvars); //If many yvars say "various", otherwise the yvar name
+		var ptitle=yvarfullname; //If many yvars say "various", otherwise the yvar name
 		for (var key in data[0]) {
 			//X-var should not be in the title, yvar is taken care of. Also check that the name exists in model.variables (e.g. yvar names don't)
 			if ((key!==xvar) && (key!==vm.model.yvars) && !((key===vm.model.timevar) && (vm.timelapse)) && (vm.model.VarExists(key))) {
@@ -191,7 +189,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 							width: .3
 						}
 					}),
-	         visualVariables: [
+			label: yvarfullname,
+	        visualVariables: [
 	        	{
 					type: "color",
 					field: "value",
@@ -217,13 +216,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 		//$('body').append(JSON.stringify(geo_data1))
 
-		//var 
 		if (pv.arcgismap===undefined)
 			pv.arcgismap = new Map({
 				basemap: "gray",
 				//layers: [lr]
 			});
-		else pv.arcgismap.removeAll()
 
 		var viewparams = {
 			container: "viewDiv",  // Reference to the scene div created in step 5
@@ -232,9 +229,12 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			//center: mapcenter,  // Sets the center point of view in lon/lat
 			ui: {
 				padding: {
-				bottom: 15,
-				right: 0
-			}}	
+					top: 5,
+					bottom: 20,
+					left: 5,
+					right: 5,
+				}	
+			}	
 		};
 
 		var mapin3D = false;
@@ -244,11 +244,31 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 		var graphics=createGraphics(geo_data1);
 
-		var lr=createLayer(graphics)
-			.then(function(layer) {
-				//console.log("layer done")
-				createLegend(layer)
-			})
+		var lr=createLayer(graphics);
+
+		/*lr.then(function(layer) {
+			//console.log("layer done")
+			createLegend(layer)
+
+		})*/
+
+		if (pv.legend) {
+			pv.legend.layerInfos = [{
+				layer: lr,
+				title: " "//ptitle
+			}];
+		} else {
+			pv.legend = new Legend({
+				view: pv.arcgisview,
+				layerInfos: [
+				{
+					layer: lr,
+					title: " "//ptitle
+				}]
+			}, "infoDiv");
+		}
+
+		//pv.arcgisview.ui.add(pv.legend, "bottom-right");
 		
 
 		pv.arcgisview
@@ -266,18 +286,37 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 
         function createLayer(graphics) {
-			lyrf = new FeatureLayer({
-				source: graphics, // autocast as an array of esri/Graphic
-				objectIdField: "geoid",
-				geometryType: "polygon",
-				fields: fields,
-				renderer: renderer, 
-				popupTemplate: pTemplate,
-				spatialReference: { wkid: wkid }		
-			});
-			pv.arcgismap.add(lyrf)
+        	pv.arcgismap.removeAll()
+        	if (pv.arcgismap.layers.length<1) {
+				lyrf = 
+					new FeatureLayer({
+						source: graphics, // autocast as an array of esri/Graphic
+						objectIdField: "geoid",
+						geometryType: "polygon",
+						fields: fields,
+						renderer: renderer, 
+						popupTemplate: pTemplate,
+						spatialReference: { wkid: wkid },		
+					});
+				
+				pv.arcgismap.add(lyrf)
+			}
+			else {
+				//debugger;
+				var promise = pv.arcgismap.layers.items[0].applyEdits({
+				    //addFeatures: [addFeature],
+				    deleteFeatures: pv.arcgismap.layers.items[0].source.items.map(function(d) {return {geoid: d.attributes.geoid}})
+				});
+				promise.then(function(editsResult) { debugger;	}).otherwise(function(err) {console.log(err)})
+				//debugger;	
+				// lyrf = pv.arcgismap.layers.items[0];
+				// lyrf.source = graphics;
+				// lyrf.applyEdits
+			}
+			
 			return lyrf;
 		}
+
 
 		function createGraphics(geoJson) {
 	        // Create an array of Graphics from each GeoJSON feature
@@ -298,23 +337,25 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			});
 	    }
 
-	    function createLegend(layer) {
-        // if the legend already exists, then update it with the new layer
-        if (pv.legend) {
-          pv.legend.layerInfos = [{
-            layer: layer,
-            title: ptitle
-          }];
-        } else {
-          pv.legend = new Legend({
-            view: pv.arcgisview,
-            layerInfos: [
-            {
-              layer: layer,
-              title: ptitle
-            }]
-          }, "infoDiv");
-        }
-      }
+	    /*function createLegend(layer) {
+			// if the legend already exists, then update it with the new layer
+			if (pv.legend) {
+				pv.legend.layerInfos = [{
+					layer: layer,
+					title: ptitle
+				}];
+			} else {
+				pv.legend = new Legend({
+					view: pv.arcgisview,
+					layerInfos: [
+					{
+						layer: layer,
+						title: ptitle
+					}]
+				}, "infoDiv");
+				pv.legend.then(pv.AdjustUIElements(vm))
+			}
+			return pv.legend
+		}*/
     });
 };

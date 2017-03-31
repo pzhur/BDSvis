@@ -5,13 +5,15 @@ BDSVis.PlotView = {
 	
 	width : 1000,
 	height : 450,
+	margin : 5,
+	legendwidth : 300,
 	
 	Init : function() {
 		//Define margins and dimensions of the SVG element containing the chart
 
 		
-		d3.select("#buttonsundergraph").style("width",this.width + "px");
-		d3.select("#plotarea").style("width", this.width +"px");
+		$("#buttonsundergraph").css("width",this.width + "px");
+		$("#plotarea").css("width", this.width +"px");
 
 		this.xvarselector = d3.select("#xvarselector");
 		this.cvarselector = d3.select("#cvarselector");
@@ -28,7 +30,7 @@ BDSVis.PlotView = {
 
 		var pv = this;
 
-		//var margin = this.margin;
+		var margin = this.margin;
 		var width=this.width;
 		var height=this.height;	
 		
@@ -119,7 +121,7 @@ BDSVis.PlotView = {
 		// var xaxlrect=this.xaxislabel.node().getBoundingClientRect();
 
 		var chartarea=$(vm.getPlotContainer())[0];
-		chartarea.offsetTop+chartarea.offsetHeight+chartarea.offsetBottom
+		//chartarea.offsetTop+chartarea.offsetHeight+chartarea.offsetBottom
 
 		var sellength=this.xvarselector.node().getBoundingClientRect();
 		sellength = sellength.right-sellength.left;
@@ -132,7 +134,7 @@ BDSVis.PlotView = {
 			// .style("left",(this.width)/2.+"px")
 			// .style("top",this.height+"px");
 			.style("left",chartarea.offsetLeft+.5*(chartarea.offsetWidth-$("#xvarselector")[0].offsetWidth)+"px")
-			.style("top",chartarea.offsetTop+chartarea.offsetHeight+"px");
+			.style("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px");
 			// .style("left",(chartrect.left+wsX+(this.margin.left+this.margin.right+this.width-sellength)/2.)+"px")
 			// .style("top",(xaxlrect.top+wsY)+"px");
 
@@ -140,16 +142,22 @@ BDSVis.PlotView = {
 			.style("position","absolute")
 			// .style("left",this.width-csellength+"px")
 			// .style("top",this.height+"px")
-			.style("left",chartarea.offsetLeft+chartarea.offsetWidth+"px")
+			.style("left",chartarea.offsetLeft+chartarea.offsetWidth+this.margin+"px")
 			.style("top",chartarea.offsetTop+"px");
 			// .style("left",(chartrect.left+wsX+this.width+this.margin.left+ this.margin.right)+"px")
 			// .style("top",(chartrect.top+wsY+this.margin.top)+"px");
 
 		this.scaleui
 			.style("position","absolute")
-			.style("left",0+"px")
-			.style("top",this.height+"px")
+			.style("left",chartarea.offsetLeft+"px")
+			.style("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px")
 			// .style("left",(this.yaxislabel.node().getBoundingClientRect().left+wsX)+"px")
 			// .style("top",(xaxlrect.top+wsY)+"px");
+
+		$('#infoDiv')
+			.css("position","absolute")
+			.css("left",chartarea.offsetLeft+chartarea.offsetWidth-$("#infoDiv")[0].offsetWidth+"px")
+			.css("top",chartarea.offsetTop+chartarea.offsetHeight-$("#infoDiv")[0].offsetHeight+"px")
+			//.css("width", this.legendwidth)
 	},
 };

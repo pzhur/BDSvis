@@ -8,7 +8,7 @@ BDSVis.UIView = {
 
 		//UI elements for plotting regime switching: cartograms/map, heatchart/plot
 		
-		if (vm.geomap()) {
+		/*if (vm.geomap()) {
 			vm.regimeselector=bug.append("select").on("change", function() {vm.cartogram=+this.value; vm.getBDSdata();});
 			vm.regimeselector.append("option").text("Map").attr("value",0).property("selected",function(d) { return vm.cartogram===0;});
 			vm.regimeselector.append("option").text("Non-cont Cartogram").attr("value",1).property("selected",function(d) { return vm.cartogram===1;});
@@ -16,7 +16,7 @@ BDSVis.UIView = {
 			vm.regimeselector=bug.append("select").on("change", function() {vm.heatchart=+this.value; vm.getBDSdata();});
 			vm.regimeselector.append("option").text("Barchart").attr("value",0).property("selected",function(d) { return (!vm.heatchart);});
 			vm.regimeselector.append("option").text("Spotchart").attr("value",1).property("selected",function(d) { return vm.heatchart;});
-		};
+		};*/
 		bug.append("h4").text(" ");
 
 		//UI elements for Save and Show Data and
