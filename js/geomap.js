@@ -112,7 +112,6 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var wkid=102100;
 
-	
 
 	require([
 		"esri/Map",

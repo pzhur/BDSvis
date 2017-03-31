@@ -106,6 +106,22 @@ BDSVis.PlotView = {
 		this.AdjustUIElements(vm);
 	},
 
+	DisplayNoData : function(request,vm) {
+		console.log("No data")
+		this.arcgismap.removeAll();
+		if (request!==undefined) {
+			ptitle="No data for "+vm.model.yvars+"s ";
+			//var ptitle=vm.model.NameLookUp(yvar,vm.model.yvars); //If many yvars say "various", otherwise the yvar name
+			for (var key in request) {
+				//X-var should not be in the title, yvar is taken care of. Also check that the name exists in model.variables (e.g. yvar names don't)
+				if ((key!==request.xvar) && (key!==vm.model.yvars) && !((key===vm.model.timevar) && (vm.timelapse)) && (vm.model.VarExists(key))) {
+					ptitle+=vm.model.PrintTitle(request[key][0],key);
+				}
+			};
+			$("#hccont").html("<h1 align='center'>"+ptitle+"</h1>");
+		}
+	},
+
 	AdjustUIElements : function(vm) {
 		// Fully compatible according to https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY?redirectlocale=en-US&redirectslug=DOM%2Fwindow.scrollY
 		// var supportPageOffset = window.pageXOffset !== undefined;
