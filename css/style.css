@@ -101,8 +101,6 @@
 }
 
 #infoDiv {
-      position: absolute;
-     
       right: 0;
       max-height: 80%;
       max-width: 300px;
@@ -110,7 +108,6 @@
       padding: 8px;
       border-top-left-radius: 5px;
       color: white;
-      /*opacity: 0.8;
+      opacity: 0.8;
       bottom: 15px;
-      */
 }

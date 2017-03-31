@@ -267,7 +267,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}, "infoDiv");
 		}
 
-		//pv.arcgisview.ui.add(pv.legend, "bottom-right");
+		pv.arcgisview.ui.add("infoDiv", "bottom-right");
+		//pv.arcgisview.ui.add("cvarselector", "top-right");
 		
 
 		pv.arcgisview

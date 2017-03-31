@@ -154,6 +154,7 @@ BDSVis.PlotView = {
 			// .style("left",(chartrect.left+wsX+(this.margin.left+this.margin.right+this.width-sellength)/2.)+"px")
 			// .style("top",(xaxlrect.top+wsY)+"px");
 
+		//if (!vm.geomap)
 		this.cvarselector
 			.style("position","absolute")
 			// .style("left",this.width-csellength+"px")
@@ -170,10 +171,10 @@ BDSVis.PlotView = {
 			// .style("left",(this.yaxislabel.node().getBoundingClientRect().left+wsX)+"px")
 			// .style("top",(xaxlrect.top+wsY)+"px");
 
-		$('#infoDiv')
+		/*$('#infoDiv')
 			.css("position","absolute")
 			.css("left",chartarea.offsetLeft+chartarea.offsetWidth-$("#infoDiv")[0].offsetWidth+"px")
 			.css("top",chartarea.offsetTop+chartarea.offsetHeight-$("#infoDiv")[0].offsetHeight+"px")
-			//.css("width", this.legendwidth)
+			//.css("width", this.legendwidth)*/
 	},
 };
