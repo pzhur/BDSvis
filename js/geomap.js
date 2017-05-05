@@ -32,19 +32,43 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm);
 
+	var NumFormat = function(d,sigdig) {
+ 	//"sigdig" is how many digits to show
+ 		var exp=Math.floor(Math.log(Math.abs(d))/Math.log(10))-sigdig+1;
+ 		var mantissa= Math.floor(d/(Math.pow(10,exp)));
+ 		var mstring0 = (mantissa*Math.pow(10,exp)).toString(),
+ 			mstring = mantissa.toString();
+ 		if (Math.abs(d)>1e+6)
+ 			return mstring0.slice(0,sigdig+exp-6)+((exp<6)?('.'+mstring.slice(sigdig+exp-6,sigdig)):"")+"M"
+ 		else if (Math.abs(d)>1e+3)
+ 			return mstring0.slice(0,sigdig+exp-3)+((exp<3)?('.'+mstring.slice(sigdig+exp-3,sigdig)):"")+"k"
+ 		else if (Math.abs(d)>1)
+ 			return mstring0.slice(0,sigdig+exp)+((exp<0)?('.'+mstring.slice(sigdig+exp,sigdig)):"")
+ 		else if (Math.abs(d)>5e-2)
+ 			return d.toPrecision(2)
+ 		else return d.toPrecision(sigdig)
+ 	};
 
+ 	var Round = function(d,sigdig,up) {
+ 		var exp=Math.floor(Math.log(Math.abs(d))/Math.log(10))-sigdig+1,
+ 			ratio = d/(Math.pow(10,exp)),
+ 			mantissa = up?Math.ceil(ratio):Math.floor(ratio)
+ 		return mantissa*Math.pow(10,exp)
+ 	}
 	
     var arraymin = function(a,b){return Math.min(a,b)};
     var arraymax = function(a,b){return Math.max(a,b)};
 
+    var sigdig=3;
+	var ymin=Round(data.map(function(d){return +d[yvar]}).reduce(arraymin),sigdig,false);
+	var ymax=Round(data.map(function(d){return +d[yvar]}).reduce(arraymax),sigdig,true);
 
-	var ymin=data.map(function(d){return +d[yvar]}).reduce(arraymin)
-	var ymax=data.map(function(d){return +d[yvar]}).reduce(arraymax)
 	var maxabs=Math.max([Math.abs(ymin),Math.abs(ymax)]);
 
-	var ymid= function(ymin,ymax) {
-		return (vm.logscale && (ymin>0))?Math.sqrt(ymin*ymax):.5*(ymin+ymax)
-	};
+	var ymid= Round((vm.logscale && (ymin>0))?Math.sqrt(ymin*ymax):.5*(ymin+ymax),sigdig, false); 
+	//function(ymin,ymax) {
+	//	return 
+	//};
 	
 	var purple="rgb(112,79,161)",
 		golden="rgb(194,85,12)",
@@ -55,8 +79,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
 		emptystates=0,
-		timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
-
+		//timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
+		timerange = [data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymin),data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymax)]
 			
 	if (vm.timelapse) { //In time lapse regime, select only the data corresponding to the current year
 		var datafull=data;
@@ -79,6 +103,13 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				geo_data1[iir].properties[key]=data[iir][key]
 
 			geo_data1[iir].properties.value=+data[iir].value
+			if (vm.timelapse)
+				for (var yr=timerange[0];yr<timerange[1];yr++) {
+					//debugger;
+					var yeardata = datafull.filter(function(d) {return +d[vm.model.timevar]===yr;}),
+						iyeardata = yeardata.map(LUName).indexOf(vm.model.geo_data[xvar][i].properties.name);
+					geo_data1[iir].properties["value"+yr]=+yeardata[iyeardata].value
+				}
 		}
 	};
 
@@ -112,6 +143,10 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var wkid=102100;
 
+	
+
+	
+
 
 	require([
 		"esri/Map",
@@ -125,9 +160,13 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		"esri/symbols/PolygonSymbol3D",
 		"esri/symbols/ExtrudeSymbol3DLayer",
 		"esri/widgets/Legend",
+		"esri/renderers/smartMapping/creators/color",
+		"esri/widgets/ColorSlider",
 		"esri/geometry/support/webMercatorUtils",
+		"dojo/on",
 		"dojo/domReady!"
-    ], function(Map, MapView, SceneView, Extent, Polygon,FeatureLayer,SimpleRenderer,SimpleFillSymbol,PolygonSymbol3D,ExtrudeSymbol3DLayer,Legend,webMercatorUtils){
+    ], function(Map, MapView, SceneView, Extent, Polygon,FeatureLayer,SimpleRenderer,SimpleFillSymbol,
+    	PolygonSymbol3D,ExtrudeSymbol3DLayer,Legend,colorRendererCreator,ColorSlider,webMercatorUtils,on){
 
      	var fields = [
 			{
@@ -144,7 +183,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				type: "string"
 			}, {
 				name: "value",
-				alias: yvarfullname,
+				alias: " ",//yvarfullname,
 				type: "int"
 			}
      	];
@@ -178,9 +217,9 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		};
 
 		var renderer = new SimpleRenderer({
-			// symbol: new PolygonSymbol3D({
-			// 				symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
-			// 			}),
+			/*symbol: new PolygonSymbol3D({
+							symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
+						}),*/
 			symbol: new SimpleFillSymbol({
 						color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
 						outline: { // autocasts as new SimpleLineSymbol()
@@ -197,19 +236,34 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 						{
 							value: ymin,
 							color: colorstopsarray[0],
-							label: ymin
+							label: NumFormat(ymin,sigdig)
 						},
 						{
-							value: ymid(ymin,ymax),
+							value: ymid,
 							color: colorstopsarray[1],
-							label: ymid(ymin,ymax)
+							label: NumFormat(ymid,sigdig)
 						},
 						{
 							value: ymax,
 							color: colorstopsarray[2],
-							label: ymax
+							label: NumFormat(ymax,sigdig)
 					}]
         		},
+        		/*{
+ 					type: "size",
+ 					field: "value",
+ 					stops: [
+ 						{
+ 							value: ymin,
+ 							size: 10000,
+ 							label: NumFormat(ymin,sigdig)
+ 						},
+ 						{
+ 							value: ymax,
+ 							size: 300000,
+ 							label: NumFormat(ymax,sigdig)
+ 					}]
+         		}*/
         	]
 		});
 
@@ -235,6 +289,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				}	
 			}	
 		};
+
+
 
 		var mapin3D = false;
 
@@ -267,6 +323,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}, "infoDiv");
 		}
 
+
 		pv.arcgisview.ui.add("infoDiv", "bottom-right");
 		//pv.arcgisview.ui.add("cvarselector", "top-right");
 		
@@ -279,8 +336,27 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 					heading: 0,
 					//tilt:
 				}).then(function() {
+					
 					if (mapin3D)
-						view.zoom = view.zoom+.75 
+						view.zoom = view.zoom+.75;
+
+					//Run timelapse animation
+					if (vm.timelapse) {
+						var iy=Math.max(timerange[0], vm.timelapsefrom);
+						var step=vm.model.LookUpVar(vm.model.timevar).range[2];
+		
+						var intervalfunction = function() {
+				  			updateyear(iy,lr);
+				  			if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
+				  			vm.TimeLapseCurrYear=iy;//vm.model[vm.model.timevar][iy];
+							clearInterval(vm.tlint);
+							vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
+						}
+
+						vm.tlint=setInterval(intervalfunction, vm.timelapsespeed);
+					};
+					
+					
 				})
 			}).otherwise(function(err) {console.log("view rejected:",err)})
 
@@ -336,6 +412,24 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			  	};
 			});
 	    }
+
+	    // Timelapse animation
+		function updateyear(yr,lr) {
+			//curyearmessage.text(vm.model[vm.model.timevar][yr]); //Display year
+			//curyearmessage.text(yr); //Display year
+			//pv.maintitle.text("");
+			//debugger;
+			var dataset=datafull.filter(function(d) {return +d[vm.model.timevar]===yr}); //Select data corresponding to the year
+			vm.TableView.makeDataTable(dataset,vm.model.yvars,xvar,vm); //Change the data that is displayed raw as a table
+			var curryearrenderer = lr.renderer.clone();
+			curryearrenderer.visualVariables[0].field="value"+yr;
+			//curryearrenderer.visualVariables[1].field="value"+yr;
+			lr.renderer = curryearrenderer;
+			pv.legend.layerInfos = [{
+				layer: lr,
+				title: yr//ptitle
+			}];
+		};
 
 	    /*function createLegend(layer) {
 			// if the legend already exists, then update it with the new layer
