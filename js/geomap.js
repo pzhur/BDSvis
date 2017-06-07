@@ -13,8 +13,6 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	$("#viewDiv").css({"width":pv.width, "height":pv.height});
 
-	
-
 	var yvar=request[vm.model.yvars];
 	var yvarfullname=vm.model.NameLookUp(yvar,vm.model.yvars)
 	var xvar=request.xvar;
@@ -22,16 +20,16 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var LUName = function(d) {return vm.model.NameLookUp(d[xvar],xvar);} //Returns full name of the variable value by its value returned by IP (aka code), and varname
 
-	
-
 
 	//Filter by region
 	data = data.filter(function(d1){
 		return vm.model[xvar][vm.model[xvar].map(function(d) {return d.code}).indexOf(d1[xvar])].regions.indexOf(vm.region)>-1;
 	})
 
+	//Display data in the table below map
 	vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm);
 
+	//This function displays numbers in "nice" format
 	var NumFormat = function(d,sigdig) {
  	//"sigdig" is how many digits to show
  		var exp=Math.floor(Math.log(Math.abs(d))/Math.log(10))-sigdig+1;
@@ -49,6 +47,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
  		else return d.toPrecision(sigdig)
  	};
 
+ 	//This function rounds the number up or down to sigdig significant decimal digits
  	var Round = function(d,sigdig,up) {
  		var exp=Math.floor(Math.log(Math.abs(d))/Math.log(10))-sigdig+1,
  			ratio = d/(Math.pow(10,exp)),
@@ -56,9 +55,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
  		return mantissa*Math.pow(10,exp)
  	}
 	
+	//Find maximal and minimal element of array
     var arraymin = function(a,b){return Math.min(a,b)};
     var arraymax = function(a,b){return Math.max(a,b)};
 
+    //Find the range of the data values
     var sigdig=3;
 	var ymin=Round(data.map(function(d){return +d[yvar]}).reduce(arraymin),sigdig,false);
 	var ymax=Round(data.map(function(d){return +d[yvar]}).reduce(arraymax),sigdig,true);
@@ -75,11 +76,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		teal="rgb(22,136,51)";
 
 	//If there are negative values use blue to red scale with white(ish) for 0 and strength of color corresponding to absolute value
-	var colorstopsarray=(ymin<0)?["#CB2027","#eeeeee","#265DAB"]:[purple,"#bbbbbb",golden];
+	var colorstopsarray=(ymin<0)?["#CB2027","white","#265DAB"]:[purple,"white",golden];
 
 	var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
 		emptystates=0,
-		//timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] }); //Time range of the time lapse
+		//Time range of the time lapse
 		timerange = [data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymin),data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymax)]
 			
 	if (vm.timelapse) { //In time lapse regime, select only the data corresponding to the current year
@@ -104,6 +105,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 			geo_data1[iir].properties.value=+data[iir].value
 			if (vm.timelapse)
+				//Map values from data elements corresponding to other years into the geographical elemets as features
 				for (var yr=timerange[0];yr<timerange[1];yr++) {
 					//debugger;
 					var yeardata = datafull.filter(function(d) {return +d[vm.model.timevar]===yr;}),
@@ -141,10 +143,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var maphighboundary = xymax(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymax)}));*/
 
+	//Geographical map projectionf
 	var wkid=102100;
-
-	
-
 	
 
 
@@ -173,7 +173,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				name: "geoid",
 				alias: "geoid",
 				type: "oid"
-			}, {
+			/*}, {
 				name: "landarea",
 				alias: "landarea",
 				type: "int"
@@ -184,7 +184,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}, {
 				name: "value",
 				alias: " ",//yvarfullname,
-				type: "int"
+				type: "int"*/
 			}
      	];
 
@@ -363,33 +363,18 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
         function createLayer(graphics) {
         	pv.arcgismap.removeAll()
-        	if (pv.arcgismap.layers.length<1) {
-				lyrf = 
-					new FeatureLayer({
-						source: graphics, // autocast as an array of esri/Graphic
-						objectIdField: "geoid",
-						geometryType: "polygon",
-						fields: fields,
-						renderer: renderer, 
-						popupTemplate: pTemplate,
-						spatialReference: { wkid: wkid },		
-					});
-				
-				pv.arcgismap.add(lyrf)
-			}
-			else {
-				//debugger;
-				var promise = pv.arcgismap.layers.items[0].applyEdits({
-				    //addFeatures: [addFeature],
-				    deleteFeatures: pv.arcgismap.layers.items[0].source.items.map(function(d) {return {geoid: d.attributes.geoid}})
+			lyrf = 
+				new FeatureLayer({
+					source: graphics, // autocast as an array of esri/Graphic
+					objectIdField: "geoid",
+					geometryType: "polygon",
+					fields: fields,
+					renderer: renderer, 
+					popupTemplate: pTemplate,
+					spatialReference: { wkid: wkid },		
 				});
-				promise.then(function(editsResult) { debugger;	}).otherwise(function(err) {console.log(err)})
-				//debugger;	
-				// lyrf = pv.arcgismap.layers.items[0];
-				// lyrf.source = graphics;
-				// lyrf.applyEdits
-			}
 			
+			pv.arcgismap.add(lyrf)
 			return lyrf;
 		}
 
