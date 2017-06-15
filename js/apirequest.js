@@ -18,7 +18,7 @@ BDSVis.getAPIdata = function (vm) {
 	
 	});
 		
-    var url = "http://api.census.gov/data/bds/firms";
+    var url = "https://api.census.gov/data/timeseries/bds/firms";
     var geovar = vm.SelectedOpts.geo;//d3.keys(request).filter(function(d) {return vm.model.geomapvar.indexOf(d)!==-1;})[0];
 	var geography = geovar+":"+request[geovar]; 
 	if ((request[geovar].length===1) && (request[geovar][0]==="00")) geography = "us:*"; //If only "United States" is selected then use us:*
