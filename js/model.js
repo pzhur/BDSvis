@@ -370,7 +370,7 @@ BDSVis.Model = {
 		
 ////////		//Customization of variables: copying of code/name tables, creating colorscales etc
 		this.ifsize=this.fsize;
-		var CreateCustomColorScale = function (varname) {
+		/*var CreateCustomColorScale = function (varname) {
 			var colorscale={};
 			if (varname=="fage4") {
 				var scage=d3.scale.pow().exponent(1.).domain([0,26]).range(["#CB2027","#265DAB"]);
@@ -387,7 +387,7 @@ BDSVis.Model = {
 				colorscale[tmod[varname][tmod[varname].length-1].code]="black";
 			};
 			return colorscale;
-		};
+		};*/
 /////////////////////////
 
 		// // //Create lookup table for variable by name to get index, by which one can access all the properties in this.variables
@@ -422,7 +422,7 @@ BDSVis.Model = {
 					for (var j=varr.range[0]; j<varr.range[1]; j+=varr.range[2]) tmod[varr.code].push(j);
 				};
 
-				if (varr.customcolor) varr.colorscale=CreateCustomColorScale(varr.code);
+				//if (varr.customcolor) varr.colorscale=CreateCustomColorScale(varr.code);
 			});
 		};
 
