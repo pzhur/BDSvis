@@ -153,11 +153,11 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 
 	            	(vm.model.NameLookUp(xvar,"var")+': <b>' + this.series.xAxis.categories[this.point.x] + '</b>,<br>'+
 	            	 vm.model.NameLookUp(cvar,"var")+': <b>' + this.series.yAxis.categories[this.point.y] + "</b>,<br>" +
-                     vm.model.NameLookUp(request[vm.model.yvars],vm.model.yvars)+': <b>' + this.point.value+"</b>")
+                     (YvarsAsLegend?"Value":vm.model.NameLookUp(request[vm.model.yvars],vm.model.yvars))+': <b>' + this.point.value+"</b>")
 					:
 	            	(vm.model.NameLookUp(xvar,"var")+': <b>' + this.x + '</b><br/>' + 
 	            	 vm.model.NameLookUp(cvar,"var")+': <b>' + this.series.name + '</b><br/>' +
-	            	 vm.model.NameLookUp(request[vm.model.yvars],vm.model.yvars)+': ' + this.y + '<br/>');
+	            	 (YvarsAsLegend?"Value":vm.model.NameLookUp(request[vm.model.yvars],vm.model.yvars))+': ' + this.y + '<br/>');
 	            return s            
 	        }
 	    },
