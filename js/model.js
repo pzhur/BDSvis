@@ -446,8 +446,9 @@ BDSVis.Model = {
 
 	LookUpVar : function (varname) { //This is not efficient with respect to performance, but is just one line of code
 		return this.flatlookup(varname, this.variables) || //If variable is found in the top level of hierarchy, return, otherwise
-		//Find all "variablegroup" objects, and pull their variables out, flatten and find the variable by using the "flatlookup" function above
-		this.flatlookup(varname,d3.merge(this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})));
+		//Find all "variablegroup" objects, and pull their variables out, flatten and find the variable by using the "flatlookup" function above	
+		this.flatlookup(varname,[].concat.apply([],this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})));
+		//this.flatlookup(varname,d3.merge(this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})));
 	},
 
 	IsGroup : function (varr) {
@@ -485,8 +486,9 @@ BDSVis.Model = {
 
 	VarExists : function (varname) {
 		if (this.variables.map(function(d) {return d.code}).indexOf(varname)!=-1) return true;
-		else 
-			return (d3.merge(this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})).map(function(d) {return d.code}).indexOf(varname)!=-1);
+		else
+			return ([].concat.apply([],this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})).map(function(d) {return d.code}).indexOf(varname)!=-1);	 
+			//return (          d3.merge(this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})).map(function(d) {return d.code}).indexOf(varname)!=-1);
 	},
 
 	PrintTitle : function (value, varname) {
