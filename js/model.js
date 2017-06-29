@@ -321,7 +321,7 @@ BDSVis.Model = {
 
 		//Get the geographic map from the shape file in TopoJSON format
 		
-		d3.json("../json/statesmsa.json", function(geodata) {			
+		$.getJSON("../json/statesmsa.json", function(geodata) {			
 			tmod.geo_data={};
 			tmod.geo_data.state=topojson.feature(geodata,geodata.objects.states).features;
 			tmod.geo_data["metropolitan statistical area"]=topojson.feature(geodata,geodata.objects.msa).features;

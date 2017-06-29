@@ -54,7 +54,7 @@ BDSVis.getAPIdata = function (vm) {
     console.log(geturl);
     
     //vm.PlotView.DisplayWaitingMessage();
-    d3.json(geturl,function (data) { //Send request to the server and get response
+    $.getJSON(geturl,function (data) { //Send request to the server and get response
     	if (data===null) {
     		console.log("Server sent empty response to " + geturl);
 			vm.PlotView.DisplayNoData(request,vm);
@@ -102,7 +102,7 @@ BDSVis.processAPIdata = function(data,request,vm) {
 
 	//Melt the data, with yvars in the same column. Like R function "melt" from the "reshape" package. 
 	//(This is needed when several yvars are used, i.e. when yvar is also a cvar)
-	data = d3.merge(data.map(function(d) {
+	data = [].concat.apply([],data.map(function(d) {
 		//Split each record into array of records where value equals to one of yvars, and vm.model.yvars(e.g "measure") is equal to the name of that yvar
 			return request[vm.model.yvars].map(function(yv){ 
 				var rec=JSON.parse(JSON.stringify(d));
@@ -110,7 +110,7 @@ BDSVis.processAPIdata = function(data,request,vm) {
                 rec.value=d[yv]; //Set value field to the value of variable yv
                 return rec;
 			}) 
-		})); //d3.merge flattens the array
+		})); //[].concat.apply([], flattens the array
 
 	vm.TableView.makeDataTable(data,request.cvar,request.xvar,vm); //Make the table displaying the data
 	
