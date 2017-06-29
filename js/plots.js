@@ -1,6 +1,6 @@
 var BDSVis = BDSVis || {};
 
-//This function makes d3js plot, either a bar chart or scatterplot
+//This function makes HighCharts.js plot, either a bar chart or scatterplot
 BDSVis.makePlot = function (data,request,vm,limits) {
 	//"vm" is the reference to ViewModel
 
@@ -30,7 +30,9 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 	xvarvalues = vm.model.IsContinuous(xvarr)?xvarvalues.sort():vm.model.sortasmodel(xvarvalues, xvar); //Sort them by quantity (if continuous) or like in model.js
 
 	if (vm.timelapse) {
-		var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
+		//var timerange = d3.extent(data, function(d) { return +d[vm.model.timevar] });
+		var timerange = [data.map(function(d){return +d[vm.model.timevar]}).reduce(function(a,b){return Math.min(a,b)}),
+						 data.map(function(d){return +d[vm.model.timevar]}).reduce(function(a,b){return Math.max(a,b)})]
 		var step=vm.model.LookUpVar(vm.model.timevar).range[2];
 		var iy=Math.max(timerange[0], vm.timelapsefrom);
 	};
@@ -217,6 +219,8 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 				})
 			);
 		});
+		var dataset=data.filter(function(d) {return +d[vm.model.timevar]===iy});
+		vm.TableView.makeDataTable(dataset,cvar,xvar,vm);
 		if (iy<Math.min(timerange[1],vm.timelapseto)) iy+=step; else iy=Math.max(timerange[0], vm.timelapsefrom);
 		vm.TimeLapseCurrYear=iy;
 		clearInterval(vm.tlint);

@@ -81,7 +81,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	var geo_data1=vm.model.geo_data[xvar].slice(0), //Data with geographical contours of states/MSA
 		emptystates=0,
 		//Time range of the time lapse
-		timerange = [data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymin),data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymax)]
+		timerange = [data.map(function(d){return +d[vm.model.timevar]}).reduce(function(a,b){return Math.min(a,b)}),data.map(function(d){return +d[vm.model.timevar]}).reduce(arraymax)]
 			
 	if (vm.timelapse) { //In time lapse regime, select only the data corresponding to the current year
 		var datafull=data;
