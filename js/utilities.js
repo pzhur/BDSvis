@@ -28,8 +28,8 @@ BDSVis.util = {
 
 		//get svg element.
 		var svg = document.getElementById("chartsvg");
-		var llctext=BDSVis.PlotView.lowerrightcornertext.text();
-		BDSVis.PlotView.lowerrightcornertext.text("");
+		//var llctext=BDSVis.PlotView.lowerrightcornertext.text();
+		//BDSVis.PlotView.lowerrightcornertext.text("");
 
 		function getSVGsource() {
 
@@ -79,7 +79,7 @@ BDSVis.util = {
 		                CreateAAndClick("jpg",canvas.toDataURL('image/jpeg'),0.98);
 		        };
 		    };
-		    BDSVis.PlotView.lowerrightcornertext.text(llctext);
+		    //BDSVis.PlotView.lowerrightcornertext.text(llctext);
 		});
 	}
 };

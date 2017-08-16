@@ -3,63 +3,82 @@ var BDSVis = BDSVis || {};
 BDSVis.UIView = {
 	DrawUI : function(vm){
 
-		var bug=d3.select("#buttonsundergraph");
-		bug.selectAll('*').remove();
-
+		//var bug=d3.select("#buttonsundergraph");
+		//bug.selectAll('*').remove();
+		var bug=$("#buttonsundergraph")
+		
+		bug.children().remove()
 		//UI elements for plotting regime switching: cartograms/map, heatchart/plot
 		
 		/*if (vm.geomap()) {
-			vm.regimeselector=bug.append("select").on("change", function() {vm.cartogram=+this.value; vm.getBDSdata();});
+			vm.regimeselector=bug.append(select).on("change", function() {vm.cartogram=+this.value; vm.getBDSdata();});
 			vm.regimeselector.append("option").text("Map").attr("value",0).property("selected",function(d) { return vm.cartogram===0;});
 			vm.regimeselector.append("option").text("Non-cont Cartogram").attr("value",1).property("selected",function(d) { return vm.cartogram===1;});
 		} else if (!vm.model.IsContinuous(vm.ActualVarCode(vm.xvar))) {
-			vm.regimeselector=bug.append("select").on("change", function() {vm.heatchart=+this.value; vm.getBDSdata();});
+			vm.regimeselector=bug.append(select).on("change", function() {vm.heatchart=+this.value; vm.getBDSdata();});
 			vm.regimeselector.append("option").text("Barchart").attr("value",0).property("selected",function(d) { return (!vm.heatchart);});
 			vm.regimeselector.append("option").text("Spotchart").attr("value",1).property("selected",function(d) { return vm.heatchart;});
 		};*/
-		bug.append("h4").text(" ");
+		
+		var h4="<h4></h4>"
+		bug.append(h4);
+		bug.children().last().text(" ");
 
 		//UI elements for Save and Show Data and
-		bug.append("button").text("Show Data").on("click",vm.toggleshowdata);
+		//bug.append("button").text("Show Data").on("click",vm.toggleshowdata);
+		var button = "<button></button>"
+		a=bug.append(button)
+		bug.children().last().text("Show Data");
+		
+		
 		if (!vm.timelapse) {
-			bug.append("button").text("Save SVG").on("click",function() {BDSVis.util.savesvg('svg');});
-			bug.append("button").text("Save PNG").on("click",function() {BDSVis.util.savesvg('png');});
+			bug.append(button)	
+			bug.children().last().text("Save SVG").on("click",function() {BDSVis.util.savesvg('svg');});
+			bug.append(button)
+			bug.children().last().text("Save PNG").on("click",function() {BDSVis.util.savesvg('png');});
 		}
-		if ((vm.xvar!==vm.model.timevar) && (vm.cvar!==vm.model.timevar)) 
-			bug.append("button").text(vm.timelapse?"Stop":"Time Lapse").on("click",vm.toggletimelapse); 
+		if ((vm.xvar!==vm.model.timevar) && (vm.cvar!==vm.model.timevar)) {
+			bug.append(button)
+			bug.children().last().text(vm.timelapse?"Stop":"Time Lapse").on("click",vm.toggletimelapse); 
+		}
 
 			
 		//UI elements for controlling the Time Lapse
+		var span="<span></span>", select="<select></select>"
 		if (vm.timelapse) {
-			bug=bug.append("span")
-			var sel=bug.append("h4").text("From: ").append("select");
-			sel.selectAll("option").data(vm.model[vm.model.timevar]).enter()
+			bug.append(span); bug=bug.children().last()
+			bug.append(h4)
+			bug.children().last().text("From: ")
+			bug.append(select);
+			var sel=bug.children().last()
+			debugger;
+			/*sel.selectAll("option").data(vm.model[vm.model.timevar]).enter()
 				.append("option").attr("value",function(d) {return d;}).text(function(d) {return d;})
 				.property("selected",function(d) { return vm.timelapsefrom===d;});
 			sel.on("change", function() {vm.timelapsefrom=this.value;});
 
-			sel=bug.append("h4").text("To: ").append("select"); 
+			sel=bug.append(h4).text("To: ").append(select); 
 			sel.selectAll("option").data(vm.model[vm.model.timevar]).enter()
 				.append("option").attr("value",function(d) {return d;}).text(function(d) {return d;})
 				.property("selected",function(d) {return vm.timelapseto===d;});
 			sel.on("change", function() {vm.timelapseto=this.value});
 
-			sel=bug.append("h4").text("Speed: ").append("select");
+			sel=bug.append(h4).text("Speed: ").append(select);
 			sel.selectAll("option").data(vm.model.timelapsespeeds).enter()
 				.append("option").attr("value",function(d) {return d.code;}).text(function(d) {return d.name;})
 				.property("selected",function(d) {return vm.timelapsespeed===d.code;});
-			sel.on("change", function() {vm.timelapsespeed=this.value});
+			sel.on("change", function() {vm.timelapsespeed=this.value});*/
 			return;
 		};
 
 		//UI elements for variable selection
-		var selectors = d3.select('.selectors');
-		selectors.selectAll('*').remove();
+		/*var selectors = d3.select('.selectors');
+		selectors.selectAll('*').remove();*/
 
 		function AddSelectorWOptions(varr, isundergroupvar) {
 			var varr1code = isundergroupvar ? vm.SelectedOpts[varr.code][0] : varr.code;
 			var multiple = vm.multiple(varr.code) && (!vm.model.IsGroup(varr) || isundergroupvar);
-			selectors.append("select")//Add the selector
+			selectors.append(select)//Add the selector
 				.on("change", function() {
 					vm.SelectedOpts[varr1code]=d3.selectAll(this.childNodes)[0].filter(function(d) {return d.selected}).map(function(d) {return d.value});
 					vm.getBDSdata();
@@ -77,15 +96,15 @@ BDSVis.UIView = {
 				.attr("value",function(d) {return vm.model.IsContinuous(varr1code)?d:d.code;}); 
 		};
 
-		vm.model.variables.forEach(function(varr) { //For each variable create selector and buttons
+		/*vm.model.variables.forEach(function(varr) { //For each variable create selector and buttons
 		
-			selectors.append("h4").text(varr.name+":"); //Add the title for selector
+			selectors.append(h4).text(varr.name+":"); //Add the title for selector
 			
 			AddSelectorWOptions(varr, false); //Add the selector for the variable
 
 			if (vm.model.IsGroup(varr)) { //Add selector for the choice selected in the group variable selector
 				selectors.append("br");
-				selectors.append("h4");
+				selectors.append(h4);
 				AddSelectorWOptions(varr, true);
 			};
 		
@@ -107,7 +126,7 @@ BDSVis.UIView = {
 						.property("disabled", (!vm.model.IsGeomapvar(varr)) && ((vm.xvar===varr.code) || (vm.cvar===varr.code)))
 						.text(vm.model.IsGeomapvar(varr)?"See Map":"Make X-axis");
 			selectors.append("br");
-		});
+		});*/
 	},
 
 	ToggleData : function(ShowData) {
