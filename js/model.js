@@ -344,9 +344,9 @@ BDSVis.Model = {
 					tmod.state.forEach(function(st) {
 						if ((msa.name.indexOf(st.st)>-1) && (region.states.indexOf(st.code)>-1)) msa.regions.push(region.name);
 					})
-				})
-
-				msa.regions = d3.set(msa.regions).values();	
+				})			
+				msa.regions = msa.regions.filter(function(d,i,a) {return i===a.indexOf(d)})
+				//d3.set(msa.regions).values();	
 			})
 
 			tmod.state.forEach(function(st) {

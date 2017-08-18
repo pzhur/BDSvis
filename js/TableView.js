@@ -4,15 +4,15 @@ BDSVis.TableView = {
 
 	makeDataTable : function(data,cvar,xvar,vm) {
 
-		var cvarvalues = d3.set(data.map(function(d) {return d[cvar]})).values(); //All the values of returned cvars
-		
+		//All the values of returned cvars
+		var cvarvalues = data.map(function(d) {return d[cvar]}).filter(function(d,i,a) {return i===a.indexOf(d)}); 
 		cvarvalues.sort(function(a,b) { //Sorted like in model.js
 				var arr=vm.model[cvar].map(function(d) {return d.code});
 				return arr.indexOf(a)-arr.indexOf(b);
 		});
 		
-		var xvarvalues = d3.set(data.map(function(d) {return d[xvar]})).values(); //All the values of returned xvars
-		
+		//All the values of returned xvars
+		var xvarvalues = data.map(function(d) {return d[xvar]}).filter(function(d,i,a) {return i===a.indexOf(d)})
 		//Data as table output via D3
 		var datashowtable = d3.select("#graphdata");
 		datashowtable.selectAll("*").remove()
