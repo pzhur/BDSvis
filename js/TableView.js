@@ -13,7 +13,7 @@ BDSVis.TableView = {
 		
 		//All the values of returned xvars
 		var xvarvalues = data.map(function(d) {return d[xvar]}).filter(function(d,i,a) {return i===a.indexOf(d)})
-		//Data as table output via D3
+		//Data as table output via jQuery
 		var datashowtable = $("#graphdata");
 		datashowtable.children().remove();
 
@@ -49,14 +49,17 @@ BDSVis.TableView = {
 				row.children().last().text(d)
 			})
 		})
-		
-		d3.select('#graphdata').selectAll('tr').style("background-color",function(d,i) {return (i%2)?"#fff":"#eee";});
+
+		$("#graphdata tr").css("background-color",function(i) {return (i%2)?"#fff":"#eee";})
 		this.SetLowerHeadersWidth();
 	},
 
 	SetLowerHeadersWidth : function() {
-		d3.select('#graphdataheaders').selectAll('th')
-			.data(d3.select('#graphdata').selectAll('th')[0].map(function(d) {return d.offsetWidth-1;}))
-			.attr("width", function(d) {return d;}).style("padding",0);
+		offsetwidths=[]
+		$("#graphdata th").each(function() {offsetwidths.push($(this).width())})
+		$('#graphdataheaders th').each(function(i){
+				$(this).attr("width",offsetwidths[i]+1)
+			}
+		)
 	}
 }
