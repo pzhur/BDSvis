@@ -17,7 +17,7 @@ BDSVis.PlotView = {
 
 		this.xvarselector = d3.select("#xvarselector");
 		this.cvarselector = d3.select("#cvarselector");
-		this.scaleui = d3.select("#logbutton");
+		this.scaleui = $("#logbutton");
 
 		this.scale = 1;
 		this.translate = [0,0];
@@ -38,15 +38,18 @@ BDSVis.PlotView = {
 		//UI controls on top of the chart refresh
 		this.xvarselector.selectAll("select").remove();
 		this.cvarselector.selectAll("select").remove();
-		this.scaleui.selectAll("*").remove();
+		this.scaleui.children().remove();
 		if (!vm.timelapse) { //Add UI controls if not in Time Lapse regime
 
 			//Logscale Checkbox
 			var boxsize=10;
 	
-			this.logbutton=this.scaleui.append("input").attr("type","Checkbox")
-				.property("checked",function(d) {return vm.logscale;})
-			this.scaleui.append("span").text("Log")
+			this.scaleui.append("<input type='Checkbox'></input>")
+
+			this.logbutton=this.scaleui.children().last()
+				//.attr("type","Checkbox")
+				.prop("checked",function() {return vm.logscale;})
+			
 			
 			this.logbutton.on("click",function() { 
 				vm.logscale=!vm.logscale;
@@ -57,6 +60,9 @@ BDSVis.PlotView = {
 				else
 					BDSVis.makePlot(data,request,vm);
 			});
+
+			this.scaleui.append("<span></span>")
+			this.scaleui.children().last().text("Log")
 
 			function AddOptionsToVarSelector(selector,varvalues,whichvar,group) { //Create a selector option for each variable value, set which are selected
 				selector.selectAll("option")
@@ -165,9 +171,9 @@ BDSVis.PlotView = {
 			// .style("top",(chartrect.top+wsY+this.margin.top)+"px");
 
 		this.scaleui
-			.style("position","absolute")
-			.style("left",chartarea.offsetLeft+"px")
-			.style("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px")
+			.css("position","absolute")
+			.css("left",chartarea.offsetLeft+"px")
+			.css("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px")
 			// .style("left",(this.yaxislabel.node().getBoundingClientRect().left+wsX)+"px")
 			// .style("top",(xaxlrect.top+wsY)+"px");
 
