@@ -35,18 +35,20 @@ BDSVis.TableView = {
 		datashowtable.append("<tbody></tbody>");
 		var dstbody = datashowtable.children().last();
 
-		xvarvalues.map(function(xv){return data.filter(function(d) {return d[xvar]===xv;})}).forEach(function(dxv) {
-			dstbody.append("<tr></tr>")
-			var row = dstbody.children().last();
-			var table = [].concat.apply([],[ //Merging arrays into one
-									[vm.model.NameLookUp(dxv[0][xvar],xvar)], //Add the xvar value as a first element of the row
-									cvarvalues.map(function(cv){ //Map a yvar value to each cvar/xvar values pair (or, a column of yvar values to each cvar value)
-										return dxv.filter(function(d) {return d[cvar]===cv})
-												.map(function(d) {return d.value});
-									})])
-			table.forEach(function(d){
-				row.append("<td></td>")
-				row.children().last().text(d)
+		xvarvalues
+			.map(function(xv){return data.filter(function(d) {return d[xvar]===xv;})})
+			.forEach(function(dxv) {
+				dstbody.append("<tr></tr>")
+				var row = dstbody.children().last();
+				var table = [].concat.apply([],[ //Merging arrays into one
+										[vm.model.NameLookUp(dxv[0][xvar],xvar)], //Add the xvar value as a first element of the row
+										cvarvalues.map(function(cv){ //Map a yvar value to each cvar/xvar values pair (or, a column of yvar values to each cvar value)
+											return dxv.filter(function(d) {return d[cvar]===cv})
+													.map(function(d) {return d.value});
+										})])
+				table.forEach(function(d){
+					row.append("<td></td>")
+					row.children().last().text(d)
 			})
 		})
 

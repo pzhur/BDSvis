@@ -56,6 +56,7 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 		if (vm.timelapse && (curyear!==undefined)) {
 			ptitle+= vm.model.PrintTitle(curyear,vm.model.timevar)
 		}
+		vm.PlotView.ptitle = ptitle
 		return ptitle;
 	};
 

@@ -31,7 +31,7 @@ BDSVis.UIView = {
 		
 		if (!vm.timelapse) {
 			bug.append(button)	
-			bug.children().last().text("Save SVG").on("click",function() {BDSVis.util.savesvg('svg');});
+			bug.children().last().text("Save SVG").on("click",function() {vm.PlotView.arcgisview.ui.add(vm.PlotView.printview, "top-left");;});
 			bug.append(button)
 			bug.children().last().text("Save PNG").on("click",function() {BDSVis.util.savesvg('png');});
 		}

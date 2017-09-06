@@ -162,11 +162,12 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		"esri/widgets/Legend",
 		"esri/renderers/smartMapping/creators/color",
 		"esri/widgets/ColorSlider",
+		"esri/widgets/Print",
 		"esri/geometry/support/webMercatorUtils",
 		"dojo/on",
 		"dojo/domReady!"
     ], function(Map, MapView, SceneView, Extent, Polygon,FeatureLayer,SimpleRenderer,SimpleFillSymbol,
-    	PolygonSymbol3D,ExtrudeSymbol3DLayer,Legend,colorRendererCreator,ColorSlider,webMercatorUtils,on){
+    	PolygonSymbol3D,ExtrudeSymbol3DLayer,Legend,colorRendererCreator,ColorSlider,Print,webMercatorUtils,on){
 
      	var fields = [
 			{
@@ -215,6 +216,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 				ptitle+=vm.model.PrintTitle(data[0][key],key);
 			}
 		};
+		vm.PlotView.ptitle = ptitle
 
 		var renderer = new SimpleRenderer({
 			/*symbol: new PolygonSymbol3D({
@@ -323,9 +325,16 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}, "infoDiv");
 		}
 
+		pv.printview = new Print({
+            view: pv.arcgisview,
+            // specify your own print service
+            printServiceUrl: "https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
+        });
 
-		pv.arcgisview.ui.add("infoDiv", "bottom-right");
+
+		pv.arcgisview.ui.add(pv.legend, "bottom-right");
 		//pv.arcgisview.ui.add("cvarselector", "top-right");
+		//pv.arcgisview.ui.add(pv.printview, "top-right");
 		
 
 		pv.arcgisview

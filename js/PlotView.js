@@ -15,8 +15,8 @@ BDSVis.PlotView = {
 		$("#buttonsundergraph").css("width",this.width + "px");
 		$("#plotarea").css("width", this.width +"px");
 
-		this.xvarselector = d3.select("#xvarselector");
-		this.cvarselector = d3.select("#cvarselector");
+		this.xvarselector = $("#xvarselector");
+		this.cvarselector = $("#cvarselector");
 		this.scaleui = $("#logbutton");
 
 		this.scale = 1;
@@ -36,8 +36,8 @@ BDSVis.PlotView = {
 		
 
 		//UI controls on top of the chart refresh
-		this.xvarselector.selectAll("select").remove();
-		this.cvarselector.selectAll("select").remove();
+		this.xvarselector.children().remove();
+		this.cvarselector.children().remove();
 		this.scaleui.children().remove();
 		if (!vm.timelapse) { //Add UI controls if not in Time Lapse regime
 
@@ -65,21 +65,23 @@ BDSVis.PlotView = {
 			this.scaleui.children().last().text("Log")
 
 			function AddOptionsToVarSelector(selector,varvalues,whichvar,group) { //Create a selector option for each variable value, set which are selected
-				selector.selectAll("option")
-					.data(varvalues).enter().append("option")
-					.attr("value",function(d) {return d.code;})
-					.text(function(d) {return d.name;})
-					.property("selected",function(d){
-							return d.code===(group?vm.SelectedOpts[vm[whichvar]][0]:vm[whichvar]);
-					});
+				varvalues.forEach(function(d) {
+					selector.append("<option></option>")
+					selector.children().last()
+						.prop("selected", d.code===(group?vm.SelectedOpts[vm[whichvar]][0]:vm[whichvar]))
+						.text(d.name)
+						.attr("value",d.code)
+				})
 			};
 
 			//X-axis variable selector			
-			var selector = this.xvarselector.append("select");
+			this.xvarselector.append("<select></select>")
+			var selector = this.xvarselector.children().last()
 			AddOptionsToVarSelector(selector,vm.model.variables.filter(function(d){return (d.asaxis && d.code!==vm.cvar)}),"xvar",false);
 			selector.on("change", function() { vm.setxvar(this.value);} );
 			if (vm.model.IsGroup(vm.xvar)) {
-				var groupselector = this.xvarselector.append("select");
+				this.xvarselector.append("<select></select>")
+				var groupselector = this.xvarselector.children().last();
 				AddOptionsToVarSelector(groupselector,vm.model[vm.xvar],"xvar",true);
 				groupselector.on("change", function() {vm.SelectedOpts[vm.xvar]=[this.value]; vm.getBDSdata();});
 			};
@@ -87,24 +89,28 @@ BDSVis.PlotView = {
 			if (!vm.geomap()) {
 				//Legend variable (cvar) selector
 				this.cvarselector.html(vm.heatchart?'Y-axis variable:<br><br>':'Legend variable:<br><br>')
-				selector = this.cvarselector.append("select");
+				this.cvarselector.append("<select></select>")
+				selector = this.cvarselector.children().last()
 				AddOptionsToVarSelector(selector,vm.model.variables.filter(function(d){return  (d.aslegend && d.code!==vm.xvar)}),"cvar",false);			
 				selector.on("change", function() { vm.setcvar(this.value);} );
 				if (vm.model.IsGroup(vm.cvar)) {
-					var groupselector = this.cvarselector.append("select");
+					this.cvarselector.append("<select></select>")
+					var groupselector = this.cvarselector.children().last();
 					AddOptionsToVarSelector(groupselector,vm.model[vm.cvar],"cvar",true);
 					groupselector.on("change", function() {vm.SelectedOpts[vm.cvar]=[this.value]; vm.getBDSdata();});
 				};
 			} else {
+				//Regions selector
 				this.cvarselector.html('Region:<br><br>')
-				selector = this.cvarselector.append("select");
-				selector.selectAll("option")
-					.data(vm.model.regions).enter().append("option")
-					.attr("value",function(d) {return d.name;})
-					.text(function(d) {return d.name;})
-					.property("selected",function(d){
-							return d.name===vm.region;
-					});		
+				this.cvarselector.append("<select></select>")
+				selector = this.cvarselector.children().last()
+				vm.model.regions.forEach(function(d) {
+					selector.append("<option></option>")
+					selector.children().last()
+						.attr("value",d.name)
+						.text(d.name)
+						.prop("selected",d.name===vm.region);
+				})
 				selector.on("change", function() { vm.region = this.value;  vm.getBDSdata();} );
 			};
 		};
@@ -129,53 +135,26 @@ BDSVis.PlotView = {
 	},
 
 	AdjustUIElements : function(vm) {
-		// Fully compatible according to https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY?redirectlocale=en-US&redirectslug=DOM%2Fwindow.scrollY
-		// var supportPageOffset = window.pageXOffset !== undefined;
-		// var isCSS1Compat = ((document.compatMode || "") === "CSS1Compat");
-
-		// var wsX = supportPageOffset ? window.pageXOffset : isCSS1Compat ? document.documentElement.scrollLeft : document.body.scrollLeft;
-		// var wsY = supportPageOffset ? window.pageYOffset : isCSS1Compat ? document.documentElement.scrollTop : document.body.scrollTop;
-
-		// var wsY=window.scrollY || window.pageYOffset;
-		// var wsX=window.scrollX || window.pageXOffset;
-
-		// var chartrect=this.svgcont.node().getBoundingClientRect();
-		// var xaxlrect=this.xaxislabel.node().getBoundingClientRect();
-
-		var chartarea=$(vm.getPlotContainer())[0];
-		//chartarea.offsetTop+chartarea.offsetHeight+chartarea.offsetBottom
-
-		var sellength=this.xvarselector.node().getBoundingClientRect();
-		sellength = sellength.right-sellength.left;
-
-		var csellength=this.cvarselector.node().getBoundingClientRect();
-		csellength = csellength.right-csellength.left;
 		
+		var chartarea=$(vm.getPlotContainer())[0];
+	
 		this.xvarselector
-			.style("position","absolute")
-			// .style("left",(this.width)/2.+"px")
-			// .style("top",this.height+"px");
-			.style("left",chartarea.offsetLeft+.5*(chartarea.offsetWidth-$("#xvarselector")[0].offsetWidth)+"px")
-			.style("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px");
-			// .style("left",(chartrect.left+wsX+(this.margin.left+this.margin.right+this.width-sellength)/2.)+"px")
-			// .style("top",(xaxlrect.top+wsY)+"px");
+			.css("position","absolute")		
+			.css("left",chartarea.offsetLeft+.5*(chartarea.offsetWidth-this.xvarselector[0].offsetWidth)+"px")
+			.css("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px");
+			
 
-		//if (!vm.geomap)
 		this.cvarselector
-			.style("position","absolute")
-			// .style("left",this.width-csellength+"px")
-			// .style("top",this.height+"px")
-			.style("left",chartarea.offsetLeft+chartarea.offsetWidth+this.margin+"px")
-			.style("top",chartarea.offsetTop+"px");
-			// .style("left",(chartrect.left+wsX+this.width+this.margin.left+ this.margin.right)+"px")
-			// .style("top",(chartrect.top+wsY+this.margin.top)+"px");
+			.css("position","absolute")
+			.css("left",chartarea.offsetLeft+chartarea.offsetWidth+this.margin+"px")
+			.css("top",chartarea.offsetTop+"px");
+			
 
 		this.scaleui
 			.css("position","absolute")
 			.css("left",chartarea.offsetLeft+"px")
 			.css("top",chartarea.offsetTop+chartarea.offsetHeight+this.margin+"px")
-			// .style("left",(this.yaxislabel.node().getBoundingClientRect().left+wsX)+"px")
-			// .style("top",(xaxlrect.top+wsY)+"px");
+
 
 		/*$('#infoDiv')
 			.css("position","absolute")
