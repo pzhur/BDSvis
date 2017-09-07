@@ -9,7 +9,7 @@ BDSVis.UIView = {
 		
 
 		//Selector for changing between barplot and heatmap
-		if (!(vm.model.IsContinuous(vm.ActualVarCode(vm.xvar) || vm.geomap()))) { //If xvar is categorical and it's not the map regime
+		if (!(vm.model.IsContinuous(vm.ActualVarCode(vm.xvar)) || vm.geomap())) { //If xvar is categorical and it's not the map regime
 			bug.append("<select></select>")
 			var sel = bug.children().last()
 			sel.on("change", function() {vm.heatchart=+this.value; vm.getBDSdata();});
@@ -18,7 +18,7 @@ BDSVis.UIView = {
 			sel.append("<option value=1>Heatmap</option>")
 			sel.children().last().prop("selected", function(){return vm.heatchart;})
 
-		} 
+		}
 		
 		var h4="<h4></h4>"
 		bug.append(h4);
