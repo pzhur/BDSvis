@@ -173,7 +173,6 @@ BDSVis.makePlot = function (data,request,vm,limits) {
 
 	    series: 	((vm.heatchart) && !(vm.model.IsContinuous(xvar)))?
 				[{
-					name: 'Sales per employee',
 					borderWidth: 1,
 					data:hmdata,
 					dataLabels: {

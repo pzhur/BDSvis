@@ -2,7 +2,7 @@ var BDSVis = BDSVis || {};
 
 BDSVis.Model = {
 	timevar : "year2", //Variable used in time lapse
-	geomapvar : ["state"], //Variable used in geo map regime
+	//geomapvar : ["state"], //Variable used in geo map regime
 	geomapvar : ["state","metropolitan statistical area"], //Variable used in geo map regime
 	yvars : "measure", //Variable plotted in y-axis
 	timelapsespeeds : [
@@ -448,7 +448,6 @@ BDSVis.Model = {
 		return this.flatlookup(varname, this.variables) || //If variable is found in the top level of hierarchy, return, otherwise
 		//Find all "variablegroup" objects, and pull their variables out, flatten and find the variable by using the "flatlookup" function above	
 		this.flatlookup(varname,[].concat.apply([],this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})));
-		//this.flatlookup(varname,d3.merge(this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})));
 	},
 
 	IsGroup : function (varr) {
@@ -488,7 +487,6 @@ BDSVis.Model = {
 		if (this.variables.map(function(d) {return d.code}).indexOf(varname)!=-1) return true;
 		else
 			return ([].concat.apply([],this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})).map(function(d) {return d.code}).indexOf(varname)!=-1);	 
-			//return (          d3.merge(this.variables.filter(function(d) {return d.type==="variablegroup"}).map(function(d) {return d.variables;})).map(function(d) {return d.code}).indexOf(varname)!=-1);
 	},
 
 	PrintTitle : function (value, varname) {

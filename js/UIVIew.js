@@ -6,24 +6,25 @@ BDSVis.UIView = {
 		var bug=$("#buttonsundergraph")
 		
 		bug.children().remove()
-		//UI elements for plotting regime switching: cartograms/map, heatchart/plot
 		
-		/*if (vm.geomap()) {
-			vm.regimeselector=bug.append(select).on("change", function() {vm.cartogram=+this.value; vm.getBDSdata();});
-			vm.regimeselector.append("option").text("Map").attr("value",0).property("selected",function(d) { return vm.cartogram===0;});
-			vm.regimeselector.append("option").text("Non-cont Cartogram").attr("value",1).property("selected",function(d) { return vm.cartogram===1;});
-		} else if (!vm.model.IsContinuous(vm.ActualVarCode(vm.xvar))) {
-			vm.regimeselector=bug.append(select).on("change", function() {vm.heatchart=+this.value; vm.getBDSdata();});
-			vm.regimeselector.append("option").text("Barchart").attr("value",0).property("selected",function(d) { return (!vm.heatchart);});
-			vm.regimeselector.append("option").text("Spotchart").attr("value",1).property("selected",function(d) { return vm.heatchart;});
-		};*/
+
+		//Selector for changing between barplot and heatmap
+		if (!(vm.model.IsContinuous(vm.ActualVarCode(vm.xvar) || vm.geomap()))) { //If xvar is categorical and it's not the map regime
+			bug.append("<select></select>")
+			var sel = bug.children().last()
+			sel.on("change", function() {vm.heatchart=+this.value; vm.getBDSdata();});
+			sel.append("<option value=0>Barchart</option>")
+			sel.children().last().prop("selected", function(){return (!vm.heatchart);})
+			sel.append("<option value=1>Heatmap</option>")
+			sel.children().last().prop("selected", function(){return vm.heatchart;})
+
+		} 
 		
 		var h4="<h4></h4>"
 		bug.append(h4);
 		bug.children().last().text(" ");
 
 		//UI elements for Save and Show Data and
-		//bug.append("button").text("Show Data").on("click",vm.toggleshowdata);
 		var button = "<button></button>"
 		a=bug.append(button)
 		bug.children().last().text("Show Data").on("click",vm.toggleshowdata);
