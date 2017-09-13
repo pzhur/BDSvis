@@ -12,6 +12,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	height=pv.height;
 
 	$("#viewDiv").css({"width":pv.width, "height":pv.height});
+	$("#viewAK").css({"width":.3*pv.width, "height":.3*pv.width});
+	$("#viewHI").css({"width":.3*pv.width, "height":.3*pv.width});
 
 	var yvar=request[vm.model.yvars];
 	var yvarfullname=vm.model.NameLookUp(yvar,vm.model.yvars)
@@ -116,20 +118,35 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	};
 
 	geo_data1=geo_data1.slice(0,data.length);
-	geo_data1continental=geo_data1.filter(function(d) {return((d.properties.name!=="Alaska")&&(d.properties.name!=="Hawaii"))});
+	geo_data1continental=geo_data1.filter(function(d) {return((d.properties.name!=="Alaska")&&(d.properties.name!=="Hawaii")&&(d.properties.name.indexOf("AK")===-1)&&(d.properties.name.indexOf("HI")===-1))});
+	geo_data1AK=geo_data1.filter(function(d) {return((d.properties.name==="Alaska")||(d.properties.name.indexOf("AK")>-1))});
+	geo_data1HI=geo_data1.filter(function(d) {return((d.properties.name==="Hawaii")||(d.properties.name.indexOf("HI")>-1))});
+
 
 
 	//Calculates geometric center of 2D points, flat geometry
-	function geocenter(arr) {
+	/*function geocenter(arr) {
 		return arr.reduce(function(a,b) {return [a[0]+b[0],a[1]+b[1]]})
 				.map(function(d) {return d/arr.length});
 	}
 
+	function azymin(a,b) {
+		var a1 = (a>0)?a:(a+360)
+		var b1 = (b>0)?b:(b+360)
+		return (a1>b1)?b:a
+	}
+
+	function azymax(a,b) {
+		var a1 = (a>0)?a:(a+360)
+		var b1 = (b>0)?b:(b+360)
+		return (a1>b1)?a:b
+	}
+
 	//Calculates xmin,ymin of 2D points
-	function xymin(arr) {return arr.reduce(function(a,b){return [Math.min(a[0],b[0]),Math.min(a[1],b[1])]});}
+	function xymin(arr) {return arr.reduce(function(a,b){return [azymin(a[0],b[0]),Math.min(a[1],b[1])]});}
 
 	//Calculates xmax,ymax of 2D points
-	function xymax(arr) {return arr.reduce(function(a,b){return [Math.max(a[0],b[0]),Math.max(a[1],b[1])]});}
+	function xymax(arr) {return arr.reduce(function(a,b){return [azymax(a[0],b[0]),Math.max(a[1],b[1])]});}
 	
 	//Applies function func to nodes of the Polygon if the geometry of GeoJSON element is Polygon, or to each polygon of MultiPolygon
 	var PolyOrMultipoly = function(d, func) {
@@ -137,16 +154,20 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			else return xymin(d.geometry.coordinates.map(function(d1){ return func(d1[0]); }))
 	}
 
-	/*var mapcenter = geocenter(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
+	var mapcenter = geocenter(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
+	var AKcenter;
+	if (geo_data1AK.length>0)
+		AKcenter = geocenter(geo_data1AK.map(function(d) {return PolyOrMultipoly(d, geocenter)}));
 
 	var maplowboundary = xymin(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymin)}));
 
 	var maphighboundary = xymax(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymax)}));*/
 
+
+
 	//Geographical map projectionf
 	var wkid=102100;
 	
-
 
 	require([
 		"esri/Map",
@@ -223,7 +244,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 							symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
 						}),*/
 			symbol: new SimpleFillSymbol({
-						color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
+						//color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
 						outline: { // autocasts as new SimpleLineSymbol()
 							color: [255, 255, 255],
 							width: .3
@@ -292,12 +313,16 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}	
 		};
 
+		
+
 
 
 		var mapin3D = false;
 
 		if (pv.arcgisview===undefined)
 			pv.arcgisview = (mapin3D)?(new SceneView(viewparams)):(new MapView(viewparams));
+
+		
 
 		var graphics=createGraphics(geo_data1);
 
@@ -335,13 +360,58 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		pv.arcgisview.ui.add(pv.legend, "bottom-right");
 		//pv.arcgisview.ui.add("cvarselector", "top-right");
 		//pv.arcgisview.ui.add(pv.printview, "top-right");
-		
+
+		if (geo_data1AK.length>0) {
+			var viewparamsAK = {
+				container: "viewAK",  // Reference to the scene div created in step 5
+				map: pv.arcgismap,  // Reference to the map object created before the scene
+				zoom: 3,  // Sets the zoom level based on level of detail (LOD)
+				center: [-155, 63],  // Sets the center point of view in lon/lat
+				ui: {
+					padding: {
+						top: 0,
+						bottom: 0,
+						left: 0,
+						right: 0,
+					}	
+				}	
+			};
+			if (pv.akview===undefined)
+				pv.akview = new MapView(viewparamsAK);
+					pv.akview
+					.then(function(view){
+							pv.AdjustUIElements(vm)
+					}).otherwise(function(err) {console.log("view rejected:",err)})
+		} else $("#viewAK").css({"width":0, "height":0});
+
+		if (geo_data1HI.length>0) {
+			var viewparamsHI = {
+				container: "viewHI",  // Reference to the scene div created in step 5
+				map: pv.arcgismap,  // Reference to the map object created before the scene
+				zoom: 6,  // Sets the zoom level based on level of detail (LOD)
+				center: [-158, 20],  // Sets the center point of view in lon/lat
+				ui: {
+					padding: {
+						top: 0,
+						bottom: 0,
+						left: 0,
+						right: 0,
+					}	
+				}	
+			};
+			if (pv.hiview===undefined)
+				pv.hiview = new MapView(viewparamsHI);
+					pv.hiview
+					.then(function(view){
+							pv.AdjustUIElements(vm)
+					}).otherwise(function(err) {console.log("view rejected:",err)})
+		} else $("#viewHI").css({"width":0, "height":0});
 
 		pv.arcgisview
 			.then(function(view){
 				pv.AdjustUIElements(vm)
 				view.goTo({
-					target: graphics.filter(function(d){return (d.attributes.name!="Alaska" && d.attributes.name!="Hawaii");}).map(function(d){return d.geometry}),
+					target: graphics.filter(function(d){return (d.attributes.name!=="Alaska" && d.attributes.name!=="Hawaii" &&(d.attributes.name.indexOf("AK")===-1)&&(d.attributes.name.indexOf("HI")===-1));}).map(function(d){return d.geometry}),
 					heading: 0,
 					//tilt:
 				}).then(function() {

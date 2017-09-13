@@ -16,7 +16,7 @@ BDSVis.ViewModel = function(model) {
 	this.UIView = BDSVis.UIView;
 
 	this.getPlotContainer = function() {
-		return vm.geomap()?("#viewDiv"):("#hccont")
+		return vm.geomap()?("#mapcont"):("#hccont")
 	}
 
 	this.ActualVarCode = function(varcode) {

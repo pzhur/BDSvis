@@ -156,7 +156,8 @@ BDSVis.UIView = {
 
 	ToggleMapGraph : function(geomap) {
 		$("#hccont").css("display",geomap?"none":"block");
-		$("#viewDiv").css("display",geomap?"block":"none");
-		$("#infoDiv").css("display",geomap?"block":"none");
+		// $("#viewDiv").css("display",geomap?"block":"none");
+		// $("#infoDiv").css("display",geomap?"block":"none");
+		$("#mapcont").css("display",geomap?"block":"none");
 	},
 }
