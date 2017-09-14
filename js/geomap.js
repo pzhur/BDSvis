@@ -22,6 +22,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var LUName = function(d) {return vm.model.NameLookUp(d[xvar],xvar);} //Returns full name of the variable value by its value returned by IP (aka code), and varname
 
+	var ContAKHI = function(name) { //Returns "AK", "HI" or "Continental" based on nam
+		if ((name==="Alaska")||(name.indexOf("AK")>-1)) return "AK";
+		else if ((name==="Hawaii")||(name.indexOf("HI")>-1)) return "HI";
+		else return "Continental";
+	}
 
 	//Filter by region
 	data = data.filter(function(d1){
@@ -118,9 +123,9 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	};
 
 	geo_data1=geo_data1.slice(0,data.length);
-	geo_data1continental=geo_data1.filter(function(d) {return((d.properties.name!=="Alaska")&&(d.properties.name!=="Hawaii")&&(d.properties.name.indexOf("AK")===-1)&&(d.properties.name.indexOf("HI")===-1))});
-	geo_data1AK=geo_data1.filter(function(d) {return((d.properties.name==="Alaska")||(d.properties.name.indexOf("AK")>-1))});
-	geo_data1HI=geo_data1.filter(function(d) {return((d.properties.name==="Hawaii")||(d.properties.name.indexOf("HI")>-1))});
+	geo_data1continental=geo_data1.filter(function(d) {return(ContAKHI(d.properties.name)==="Continental")});
+	geo_data1AK=geo_data1.filter(function(d) {return(ContAKHI(d.properties.name)==="AK")});
+	geo_data1HI=geo_data1.filter(function(d) {return(ContAKHI(d.properties.name)==="HI")});
 
 
 
@@ -411,7 +416,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			.then(function(view){
 				pv.AdjustUIElements(vm)
 				view.goTo({
-					target: graphics.filter(function(d){return (d.attributes.name!=="Alaska" && d.attributes.name!=="Hawaii" &&(d.attributes.name.indexOf("AK")===-1)&&(d.attributes.name.indexOf("HI")===-1));}).map(function(d){return d.geometry}),
+					target: graphics.filter(function(d){return(ContAKHI(d.attributes.name)==="Continental");}).map(function(d){return d.geometry}),
 					heading: 0,
 					//tilt:
 				}).then(function() {
