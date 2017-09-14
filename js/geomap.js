@@ -355,6 +355,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}, "infoDiv");
 		}
 
+		pv.printwidgeton = false;
 		pv.printview = new Print({
             view: pv.arcgisview,
             // specify your own print service

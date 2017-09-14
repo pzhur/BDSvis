@@ -30,11 +30,11 @@ BDSVis.UIView = {
 		bug.children().last().text("Show Data").on("click",vm.toggleshowdata);
 		
 		
-		if (!vm.timelapse) {
+		if ((!vm.timelapse) && (vm.geomap())) {
 			bug.append(button)	
-			bug.children().last().text("Save SVG").on("click",function() {vm.PlotView.arcgisview.ui.add(vm.PlotView.printview, "top-left");;});
-			bug.append(button)
-			bug.children().last().text("Save PNG").on("click",function() {BDSVis.util.savesvg('png');});
+			bug.children().last().text("Print/Save map").on("click",function() {
+				vm.PlotView.TogglePrintWidget();
+			});
 		}
 		if ((vm.xvar!==vm.model.timevar) && (vm.cvar!==vm.model.timevar)) {
 			bug.append(button)

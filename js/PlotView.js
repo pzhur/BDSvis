@@ -162,4 +162,16 @@ BDSVis.PlotView = {
 			.css("top",chartarea.offsetTop+chartarea.offsetHeight-$("#infoDiv")[0].offsetHeight+"px")
 			//.css("width", this.legendwidth)*/
 	},
+
+	TogglePrintWidget: function() {
+		if (this.printwidgeton) {
+			this.arcgisview.ui.remove(this.printview)
+			this.printwidgeton = false;
+		}
+		else {
+			this.printwidgeton = true;
+			this.arcgisview.ui.add(this.printview, "top-left");
+		}
+	}
+		
 };
