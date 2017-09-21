@@ -19,6 +19,27 @@ BDSVis.UIView = {
 			sel.children().last().prop("selected", function(){return vm.heatchart;})
 
 		}
+
+		//Selector for changing between 2D map and 3D Scene and extrusion
+		if (vm.geomap()) { 
+			bug.append("<select></select>")
+			var sel = bug.children().last()
+			sel.on("change", function() {vm.mapin3D=+this.value; delete vm.PlotView.arcgisview; vm.getBDSdata();});
+			sel.append("<option value=0>2D (Map)</option>")
+			sel.children().last().prop("selected", function(){return (!vm.mapin3D);})
+			sel.append("<option value=1>3D (Scene)</option>");
+			sel.children().last().prop("selected", function(){return vm.mapin3D;})
+
+			if (vm.mapin3D) {
+				bug.append("<select></select>")
+				var sel = bug.children().last()
+				sel.on("change", function() {vm.extruded=+this.value; vm.getBDSdata();});
+				sel.append("<option value=0>Flat</option>")
+				sel.children().last().prop("selected", function(){return (!vm.extruded);})
+				sel.append("<option value=1>Extruded</option>");
+				sel.children().last().prop("selected", function(){return vm.extruded;})
+			}
+		}
 		
 		var h4="<h4></h4>"
 		bug.append(h4);

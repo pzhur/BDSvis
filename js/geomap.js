@@ -22,7 +22,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 	var LUName = function(d) {return vm.model.NameLookUp(d[xvar],xvar);} //Returns full name of the variable value by its value returned by IP (aka code), and varname
 
-	var ContAKHI = function(name) { //Returns "AK", "HI" or "Continental" based on nam
+	var ContAKHI = function(name) { //Returns "AK", "HI" or "Continental" based on name
 		if ((name==="Alaska")||(name.indexOf("AK")>-1)) return "AK";
 		else if ((name==="Hawaii")||(name.indexOf("HI")>-1)) return "HI";
 		else return "Continental";
@@ -169,7 +169,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 	var maphighboundary = xymax(geo_data1continental.map(function(d) {return PolyOrMultipoly(d, xymax)}));*/
 
 
-
+	//Use ArcGIS JavaScript API to display map from the data prepared above
 	//Geographical map projectionf
 	var wkid=102100;
 	
@@ -244,19 +244,20 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		};
 		vm.PlotView.ptitle = ptitle
 
-		var renderer = new SimpleRenderer({
-			/*symbol: new PolygonSymbol3D({
+		var symbol = (vm.extruded && vm.mapin3D )?
+						new PolygonSymbol3D({
 							symbolLayers: [new ExtrudeSymbol3DLayer()]  // creates volumetric symbols for polygons that can be extruded
-						}),*/
-			symbol: new SimpleFillSymbol({
-						//color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
-						outline: { // autocasts as new SimpleLineSymbol()
-							color: [255, 255, 255],
-							width: .3
-						}
-					}),
-			label: yvarfullname,
-	        visualVariables: [
+						}): 
+						new SimpleFillSymbol({
+							//color: [227, 139, 79, 0.8],//yScale(g.attributes.value),//[227, 139, 79, 0.8],
+							outline: { // autocasts as new SimpleLineSymbol()
+								color: [255, 255, 255],
+								width: .3
+							}
+						});
+		/*symbol: ,*/
+
+		var visualVariables = [
 	        	{
 					type: "color",
 					field: "value",
@@ -276,23 +277,36 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 							color: colorstopsarray[2],
 							label: NumFormat(ymax,sigdig)
 					}]
-        		},
-        		/*{
- 					type: "size",
- 					field: "value",
- 					stops: [
- 						{
- 							value: ymin,
- 							size: 10000,
- 							label: NumFormat(ymin,sigdig)
- 						},
- 						{
- 							value: ymax,
- 							size: 300000,
- 							label: NumFormat(ymax,sigdig)
- 					}]
-         		}*/
-        	]
+        		}]
+
+        if (vm.extruded && vm.mapin3D) visualVariables.push(
+			{
+				type: "size",
+				field: "value",
+				stops: [
+					{
+						value: ymin,
+						size: 10000,
+						label: NumFormat(ymin,sigdig)
+					},
+					{
+							value: ymid,
+							size: 155000,
+							label: NumFormat(ymid,sigdig)
+					},
+					{
+						value: ymax,
+						size: 300000,
+						label: NumFormat(ymax,sigdig)
+					}
+				]
+			}
+			)
+
+		var renderer = new SimpleRenderer({
+			symbol: symbol,
+			label: yvarfullname,
+	        visualVariables: visualVariables
 		});
 
 		//$('body').append(JSON.stringify(geo_data1))
@@ -322,12 +336,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 
 
 
-		var mapin3D = false;
-
 		if (pv.arcgisview===undefined)
-			pv.arcgisview = (mapin3D)?(new SceneView(viewparams)):(new MapView(viewparams));
-
-		
+			pv.arcgisview = (vm.mapin3D)?(new SceneView(viewparams)):(new MapView(viewparams));
 
 		var graphics=createGraphics(geo_data1);
 
@@ -355,6 +365,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			}, "infoDiv");
 		}
 
+		//Widget for Printing/Exporting to PDF
 		pv.printwidgeton = false;
 		pv.printview = new Print({
             view: pv.arcgisview,
@@ -367,7 +378,8 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 		//pv.arcgisview.ui.add("cvarselector", "top-right");
 		//pv.arcgisview.ui.add(pv.printview, "top-right");
 
-		if (geo_data1AK.length>0) {
+		//Alaska View
+		if (geo_data1AK.length>0 & !vm.mapin3D) {
 			var viewparamsAK = {
 				container: "viewAK",  // Reference to the scene div created in step 5
 				map: pv.arcgismap,  // Reference to the map object created before the scene
@@ -382,15 +394,18 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 					}	
 				}	
 			};
+			//p["attribution", "zoom"]
 			if (pv.akview===undefined)
 				pv.akview = new MapView(viewparamsAK);
-					pv.akview
+				pv.akview
 					.then(function(view){
 							pv.AdjustUIElements(vm)
 					}).otherwise(function(err) {console.log("view rejected:",err)})
+				pv.akview.ui.components=[]
 		} else $("#viewAK").css({"width":0, "height":0});
 
-		if (geo_data1HI.length>0) {
+		//Hawaii view
+		if (((geo_data1HI.length>0) || (geo_data1AK.length>0)) & !vm.mapin3D)  {
 			var viewparamsHI = {
 				container: "viewHI",  // Reference to the scene div created in step 5
 				map: pv.arcgismap,  // Reference to the map object created before the scene
@@ -407,10 +422,11 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			};
 			if (pv.hiview===undefined)
 				pv.hiview = new MapView(viewparamsHI);
-					pv.hiview
+				pv.hiview
 					.then(function(view){
 							pv.AdjustUIElements(vm)
 					}).otherwise(function(err) {console.log("view rejected:",err)})
+				pv.hiview.ui.components=[]
 		} else $("#viewHI").css({"width":0, "height":0});
 
 		pv.arcgisview
@@ -422,7 +438,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 					//tilt:
 				}).then(function() {
 					
-					if (mapin3D)
+					if (vm.mapin3D)
 						view.zoom = view.zoom+.75;
 
 					//Run timelapse animation
@@ -493,7 +509,7 @@ BDSVis.makeMap = function (data,request,vm,dataunfiltered) {
 			vm.TableView.makeDataTable(dataset,vm.model.yvars,xvar,vm); //Change the data that is displayed raw as a table
 			var curryearrenderer = lr.renderer.clone();
 			curryearrenderer.visualVariables[0].field="value"+yr;
-			//curryearrenderer.visualVariables[1].field="value"+yr;
+			if (vm.extruded && vm.mapin3D) curryearrenderer.visualVariables[1].field="value"+yr;
 			lr.renderer = curryearrenderer;
 			pv.legend.layerInfos = [{
 				layer: lr,

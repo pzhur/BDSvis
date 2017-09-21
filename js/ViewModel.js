@@ -80,6 +80,8 @@ BDSVis.ViewModel = function(model) {
 	this.region = "New England";
 	this.cartogram = 0;
 	this.heatchart = 0;
+	this.mapin3D = 0;
+	this.extruded = 0;
 
 	//Set the incompatible variables to values corresponding totals
 	function SetToTotals(varname) {
